@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import '../../models/enums.dart';
 
 /// Drift table for storing medicine inventory items
 class MedicineInventory extends Table {
@@ -18,7 +19,7 @@ class MedicineInventory extends Table {
   TextColumn get strength => text().withLength(min: 1, max: 100).nullable()();
 
   /// Quantity available (required)
-  IntColumn get quantity => integer().withRange(min: 0)();
+  IntColumn get quantity => integer()();
 
   /// Unit of measurement (required, e.g., mL, mg, tablets)
   TextColumn get unit => text().withLength(min: 1, max: 50)();
@@ -33,7 +34,7 @@ class MedicineInventory extends Table {
   TextColumn get location => text().withLength(min: 1, max: 200).nullable()();
 
   /// Low stock threshold for alerts (optional)
-  IntColumn get lowStockThreshold => integer().withRange(min: 0).nullable()();
+  IntColumn get lowStockThreshold => integer().nullable()();
 
   /// Whether the item has been disposed
   BoolColumn get isDisposed => boolean().withDefault(const Constant(false))();
@@ -43,9 +44,6 @@ class MedicineInventory extends Table {
 
   /// Last update timestamp
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column> get primaryKey => {id};
 }
 
 /// Converter for MedicineForm enum

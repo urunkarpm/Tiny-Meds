@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import '../../data/models/enums.dart';
 
 /// Domain entity representing a medicine in the home inventory
 class Medicine {
@@ -66,27 +66,6 @@ class Medicine {
     } else {
       return 'Active';
     }
-  }
-
-  /// Convert to database companion for insertion
-  MedicineInventoryCompanion toCompanion({bool forUpdate = false}) {
-    return MedicineInventoryCompanion(
-      id: id != null ? Value(id!) : const Value.absent(),
-      name: Value(name),
-      brand: brand != null ? Value(brand) : const Value.absent(),
-      form: Value(form),
-      strength: strength != null ? Value(strength) : const Value.absent(),
-      quantity: Value(quantity),
-      unit: Value(unit),
-      expiryDate: Value(expiryDate),
-      openedDate: openedDate != null ? Value(openedDate) : const Value.absent(),
-      location: location != null ? Value(location) : const Value.absent(),
-      lowStockThreshold:
-          lowStockThreshold != null ? Value(lowStockThreshold) : const Value.absent(),
-      isDisposed: Value(isDisposed),
-      createdAt: forUpdate ? const Value.absent() : Value(createdAt),
-      updatedAt: Value(DateTime.now()),
-    );
   }
 
   /// Create a copy with updated fields

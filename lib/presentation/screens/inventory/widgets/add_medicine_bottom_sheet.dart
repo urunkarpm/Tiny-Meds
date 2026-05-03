@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../domain/entities/medicine.dart';
-import '../../../domain/entities/enums.dart';
-import '../../providers/inventory_provider.dart';
+import '../../../../domain/entities/medicine.dart';
+import '../../../../data/models/enums.dart';
+import '../../../providers/inventory_provider.dart';
 
 /// Bottom sheet for adding or editing a medicine
 class AddMedicineBottomSheet extends ConsumerStatefulWidget {

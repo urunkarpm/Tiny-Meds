@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../domain/entities/medicine.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/constants/app_constants.dart';
+import '../../../../data/models/enums.dart';
+import '../../../../domain/entities/medicine.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/constants/app_constants.dart';
 
 /// List item widget for displaying a medicine in the inventory list
 class MedicineListItem extends StatelessWidget {

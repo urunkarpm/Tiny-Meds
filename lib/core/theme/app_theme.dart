@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 
 /// Material 3 theme configuration for Tiny-Meds
 /// Follows guidelines from m3.material.io
@@ -20,7 +21,7 @@ class AppTheme {
       elevation: 0,
       scrolledUnderElevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -61,7 +62,7 @@ class AppTheme {
       elevation: 0,
       scrolledUnderElevation: 0,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),

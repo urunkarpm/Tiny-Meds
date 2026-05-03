@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import '../../domain/entities/alert.dart';
 import '../database/app_database.dart';
 
@@ -58,12 +60,12 @@ class AlertRepositoryImpl implements AlertRepository {
 
   @override
   Future<int> insertAlert(Alert alert) async {
-    return _database.insertAlert(alert.toCompanion());
+    return _database.insertAlert(_toCompanion(alert));
   }
 
   @override
   Future<bool> updateAlert(Alert alert) async {
-    return _database.updateAlert(alert.toCompanion(forUpdate: true));
+    return _database.updateAlert(_toCompanion(alert, forUpdate: true));
   }
 
   @override
@@ -86,12 +88,26 @@ class AlertRepositoryImpl implements AlertRepository {
     return _database.setAllAlertsActive(isActive);
   }
 
+  AlertsCompanion _toCompanion(Alert a, {bool forUpdate = false}) {
+    return AlertsCompanion(
+      id: a.id != null ? Value(a.id!) : const Value.absent(),
+      medicineId: Value(a.medicineId),
+      type: Value(a.type),
+      triggerDate: Value(a.triggerDate),
+      recurrence: a.recurrence != null ? Value(a.recurrence) : const Value.absent(),
+      isActive: Value(a.isActive),
+      lastNotified:
+          a.lastNotified != null ? Value(a.lastNotified) : const Value.absent(),
+      createdAt: forUpdate ? const Value.absent() : Value(a.createdAt),
+    );
+  }
+
   /// Map database entity to domain entity
-  List<Alert> _mapAlerts(List<Alerts> items) {
+  List<Alert> _mapAlerts(List<AlertData> items) {
     return items.map(_mapAlert).toList();
   }
 
-  Alert _mapAlert(Alerts item) {
+  Alert _mapAlert(AlertData item) {
     return Alert(
       id: item.id,
       medicineId: item.medicineId,

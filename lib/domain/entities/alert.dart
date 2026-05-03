@@ -1,4 +1,4 @@
-import 'package:drift/drift.dart';
+import '../../data/models/enums.dart';
 
 /// Domain entity representing an alert for a medicine
 class Alert {
@@ -30,21 +30,6 @@ class Alert {
   /// Get formatted trigger date for display
   String get formattedTriggerDate {
     return _formatDateTime(triggerDate);
-  }
-
-  /// Convert to database companion for insertion
-  AlertsCompanion toCompanion({bool forUpdate = false}) {
-    return AlertsCompanion(
-      id: id != null ? Value(id!) : const Value.absent(),
-      medicineId: Value(medicineId),
-      type: Value(type),
-      triggerDate: Value(triggerDate),
-      recurrence: recurrence != null ? Value(recurrence) : const Value.absent(),
-      isActive: Value(isActive),
-      lastNotified:
-          lastNotified != null ? Value(lastNotified) : const Value.absent(),
-      createdAt: forUpdate ? const Value.absent() : Value(createdAt),
-    );
   }
 
   /// Create a copy with updated fields

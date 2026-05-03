@@ -1,6 +1,9 @@
 import 'package:drift/drift.dart';
+import '../../models/enums.dart';
+import 'medicine_inventory_table.dart';
 
 /// Drift table for storing alerts
+@DataClassName('AlertData')
 class Alerts extends Table {
   /// Primary key, auto-increment
   IntColumn get id => integer().autoIncrement()();
@@ -25,9 +28,6 @@ class Alerts extends Table {
 
   /// Creation timestamp
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-
-  @override
-  Set<Column> get primaryKey => {id};
 }
 
 /// Converter for AlertType enum

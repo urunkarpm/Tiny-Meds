@@ -62,12 +62,12 @@ class MedicineRepositoryImpl implements MedicineRepository {
 
   @override
   Future<int> insertMedicine(Medicine medicine) async {
-    return _database.insertMedicine(medicine.toCompanion());
+    return _database.insertMedicine(_toCompanion(medicine));
   }
 
   @override
   Future<bool> updateMedicine(Medicine medicine) async {
-    return _database.updateMedicine(medicine.toCompanion(forUpdate: true));
+    return _database.updateMedicine(_toCompanion(medicine, forUpdate: true));
   }
 
   @override
@@ -85,12 +85,33 @@ class MedicineRepositoryImpl implements MedicineRepository {
     return _database.watchLowStockMedicines().map(_mapMedicines);
   }
 
+  MedicineInventoryCompanion _toCompanion(Medicine m, {bool forUpdate = false}) {
+    return MedicineInventoryCompanion(
+      id: m.id != null ? Value(m.id!) : const Value.absent(),
+      name: Value(m.name),
+      brand: m.brand != null ? Value(m.brand) : const Value.absent(),
+      form: Value(m.form),
+      strength: m.strength != null ? Value(m.strength) : const Value.absent(),
+      quantity: Value(m.quantity),
+      unit: Value(m.unit),
+      expiryDate: Value(m.expiryDate),
+      openedDate: m.openedDate != null ? Value(m.openedDate) : const Value.absent(),
+      location: m.location != null ? Value(m.location) : const Value.absent(),
+      lowStockThreshold: m.lowStockThreshold != null
+          ? Value(m.lowStockThreshold)
+          : const Value.absent(),
+      isDisposed: Value(m.isDisposed),
+      createdAt: forUpdate ? const Value.absent() : Value(m.createdAt),
+      updatedAt: Value(DateTime.now()),
+    );
+  }
+
   /// Map database entity to domain entity
-  List<Medicine> _mapMedicines(List<MedicineInventory> items) {
+  List<Medicine> _mapMedicines(List<MedicineInventoryData> items) {
     return items.map(_mapMedicine).toList();
   }
 
-  Medicine _mapMedicine(MedicineInventory item) {
+  Medicine _mapMedicine(MedicineInventoryData item) {
     return Medicine(
       id: item.id,
       name: item.name,

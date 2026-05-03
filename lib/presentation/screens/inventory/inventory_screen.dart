@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/entities/medicine.dart';
-import '../providers/inventory_provider.dart';
+import '../../../data/database/app_database.dart';
+import '../../../data/models/enums.dart';
+import '../../../domain/entities/medicine.dart';
+import '../../providers/inventory_provider.dart';
 import 'widgets/medicine_list_item.dart';
 import 'widgets/add_medicine_bottom_sheet.dart';
 
@@ -301,21 +303,23 @@ class MedicineDetailScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoRow('Name', medicine.name),
-            if (medicine.brand != null) _buildInfoRow('Brand', medicine.brand!),
-            _buildInfoRow('Form', medicine.form.displayName),
+            _buildInfoRow(context, 'Name', medicine.name),
+            if (medicine.brand != null) _buildInfoRow(context, 'Brand', medicine.brand!),
+            _buildInfoRow(context, 'Form', medicine.form.displayName),
             if (medicine.strength != null)
-              _buildInfoRow('Strength', medicine.strength!),
-            _buildInfoRow('Quantity', '${medicine.quantity} ${medicine.unit}'),
+              _buildInfoRow(context, 'Strength', medicine.strength!),
+            _buildInfoRow(context, 'Quantity', '${medicine.quantity} ${medicine.unit}'),
             _buildInfoRow(
+              context,
               'Expiry Date',
               _formatDate(medicine.expiryDate),
               isError: medicine.isExpired,
             ),
             if (medicine.location != null)
-              _buildInfoRow('Location', medicine.location!),
+              _buildInfoRow(context, 'Location', medicine.location!),
             if (medicine.lowStockThreshold != null)
               _buildInfoRow(
+                context,
                 'Low Stock Threshold',
                 '${medicine.lowStockThreshold} ${medicine.unit}',
               ),
@@ -325,7 +329,7 @@ class MedicineDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isError = false}) {
+  Widget _buildInfoRow(BuildContext context, String label, String value, {bool isError = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(

@@ -2,8 +2,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
-import '../core/constants/app_constants.dart';
-import '../core/error/exceptions.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/error/exceptions.dart';
 
 /// Service for managing local notifications
 class NotificationService {

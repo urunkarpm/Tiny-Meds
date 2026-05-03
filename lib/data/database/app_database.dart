@@ -5,8 +5,9 @@ import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-import '../tables/medicine_inventory_table.dart';
-import '../tables/alerts_table.dart';
+import '../models/enums.dart';
+import 'tables/medicine_inventory_table.dart';
+import 'tables/alerts_table.dart';
 
 part 'app_database.g.dart';
 
@@ -19,7 +20,7 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   /// Get all medicines sorted by expiry date (soonest first)
-  Stream<List<MedicineInventory>> watchAllMedicines() {
+  Stream<List<MedicineInventoryData>> watchAllMedicines() {
     return (select(medicineInventory)
           ..orderBy([
             (t) => OrderingTerm.asc(t.expiryDate),
@@ -28,7 +29,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Get medicines by status filter
-  Stream<List<MedicineInventory>> watchMedicinesByStatus(MedicineStatus status) {
+  Stream<List<MedicineInventoryData>> watchMedicinesByStatus(MedicineStatus status) {
     final now = DateTime.now();
     final expiringSoon = now.add(const Duration(days: 30));
     final expiringVerySoon = now.add(const Duration(days: 7));
@@ -39,11 +40,11 @@ class AppDatabase extends _$AppDatabase {
               case MedicineStatus.all:
                 return t.isDisposed.equals(false);
               case MedicineStatus.active:
-                return t.expiryDate.isBiggerThan(expiringSoon) &
+                return t.expiryDate.isBiggerThanValue(expiringSoon) &
                     t.isDisposed.equals(false);
               case MedicineStatus.expiringSoon:
                 return t.expiryDate.isBiggerOrEqualValue(now) &
-                    t.expiryDate.isSmallerOrEqual(expiringVerySoon) &
+                    t.expiryDate.isSmallerOrEqualValue(expiringVerySoon) &
                     t.isDisposed.equals(false);
               case MedicineStatus.expired:
                 return t.expiryDate.isSmallerThanValue(now) &
@@ -58,7 +59,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Search medicines by name or brand
-  Stream<List<MedicineInventory>> searchMedicines(String query) {
+  Stream<List<MedicineInventoryData>> searchMedicines(String query) {
     final searchTerm = '%${query.toLowerCase()}%';
     return (select(medicineInventory)
           ..where((t) {
@@ -77,7 +78,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Update an existing medicine
   Future<bool> updateMedicine(MedicineInventoryCompanion medicine) {
-    return update(medicineInventory).write(medicine);
+    return update(medicineInventory).write(medicine).then((count) => count > 0);
   }
 
   /// Delete a medicine
@@ -89,21 +90,22 @@ class AppDatabase extends _$AppDatabase {
   /// Mark medicine as disposed
   Future<bool> markAsDisposed(int id) {
     return (update(medicineInventory)..where((t) => t.id.equals(id)))
-        .write(MedicineInventoryCompanion(isDisposed: const Value(true)));
+        .write(MedicineInventoryCompanion(isDisposed: const Value(true)))
+        .then((count) => count > 0);
   }
 
   /// Get a single medicine by ID
-  Future<MedicineInventory?> getMedicineById(int id) {
+  Future<MedicineInventoryData?> getMedicineById(int id) {
     return (select(medicineInventory)..where((t) => t.id.equals(id)))
         .getSingleOrNull();
   }
 
   /// Get low stock medicines
-  Stream<List<MedicineInventory>> watchLowStockMedicines() {
+  Stream<List<MedicineInventoryData>> watchLowStockMedicines() {
     return (select(medicineInventory)
           ..where((t) =>
               t.lowStockThreshold.isNotNull() &
-              t.quantity.isSmallerOrEqual(t.lowStockThreshold!) &
+              t.quantity.isSmallerOrEqual(t.lowStockThreshold.dartCast<int>()) &
               t.isDisposed.equals(false))
           ..orderBy([(t) => OrderingTerm.asc(t.expiryDate)]))
         .watch();
@@ -116,7 +118,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Update an existing alert
   Future<bool> updateAlert(AlertsCompanion alert) {
-    return update(alerts).write(alert);
+    return update(alerts).write(alert).then((count) => count > 0);
   }
 
   /// Delete an alert
@@ -126,13 +128,13 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Get alerts for a specific medicine
-  Stream<List<Alert>> watchAlertsForMedicine(int medicineId) {
+  Stream<List<AlertData>> watchAlertsForMedicine(int medicineId) {
     return (select(alerts)..where((t) => t.medicineId.equals(medicineId)))
         .watch();
   }
 
   /// Get all active alerts
-  Stream<List<Alert>> watchActiveAlerts() {
+  Stream<List<AlertData>> watchActiveAlerts() {
     return (select(alerts)..where((t) => t.isActive.equals(true)))
         .watch();
   }
@@ -140,13 +142,15 @@ class AppDatabase extends _$AppDatabase {
   /// Update last notified time for an alert
   Future<bool> updateLastNotified(int id, DateTime time) {
     return (update(alerts)..where((t) => t.id.equals(id)))
-        .write(AlertsCompanion(lastNotified: Value(time)));
+        .write(AlertsCompanion(lastNotified: Value(time)))
+        .then((count) => count > 0);
   }
 
   /// Toggle alert active state
   Future<bool> toggleAlertActive(int id, bool isActive) {
     return (update(alerts)..where((t) => t.id.equals(id)))
-        .write(AlertsCompanion(isActive: Value(isActive)));
+        .write(AlertsCompanion(isActive: Value(isActive)))
+        .then((count) => count > 0);
   }
 
   /// Enable or disable all alerts
