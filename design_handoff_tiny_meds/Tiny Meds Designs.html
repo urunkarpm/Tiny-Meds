@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" data-mode="light">
+<head>
+<meta charset="utf-8">
+<title>Tiny Meds — Hi-fi designs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #ECEFF2; font-family: 'Inter', system-ui, sans-serif; overflow: hidden; }
+  html[data-mode="dark"] body { background: #0a0a0a; }
+  * { box-sizing: border-box; }
+</style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="md-design-system.jsx"></script>
+  <script type="text/babel" src="md-screens-1.jsx"></script>
+  <script type="text/babel" src="md-screens-2.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    const TWEAKS = /*EDITMODE-BEGIN*/{
+      "mode": "light",
+      "density": "comfortable",
+      "accent": "green"
+    }/*EDITMODE-END*/;
+
+    const ACCENTS = {
+      blue:   { p: '#0A84FF', pc: '#D6E7FF', oc: '#001D36' },        // codebase default
+      teal:   { p: '#00897B', pc: '#B2DFDB', oc: '#002A26' },
+      indigo: { p: '#5C6BC0', pc: '#DDE0F5', oc: '#1A1F4D' },
+      green:  { p: '#1B873B', pc: '#D8F0DD', oc: '#0A2E14' },
+    };
+
+    function applyTweaks(t) {
+      document.documentElement.dataset.mode = t.mode;
+      const a = ACCENTS[t.accent] || ACCENTS.blue;
+      // override primary in MD palettes
+      window.MD.light.primary = a.p;
+      window.MD.light.primaryContainer = a.pc;
+      window.MD.light.onPrimaryContainer = a.oc;
+      // dark — slightly tinted
+      window.MD.dark.primary = a.p;
+      window.MD.dark.primaryContainer = a.oc;
+      window.MD.dark.onPrimaryContainer = a.pc;
+    }
+
+    function App() {
+      const [t, setT] = useTweaks(TWEAKS);
+      const [, force] = React.useReducer(x => x+1, 0);
+      React.useEffect(() => { applyTweaks(t); force(); }, [t]);
+
+      return (
+        <>
+          <DesignCanvas
+            title="Tiny Meds"
+            subtitle="Material 3 · Inter · seed #0A84FF · 8 screens — drag to rearrange, click any to focus"
+            background={t.mode === 'dark' ? '#0a0a0a' : '#ECEFF2'}
+          >
+            <DCSection id="entry" title="Entry & home" subtitle="First launch, then the cabinet">
+              <DCArtboard id="01-onb" label="01 · Onboarding"     width={420} height={840}><OnboardingScreen /></DCArtboard>
+              <DCArtboard id="02-cab" label="02 · Cabinet (home)" width={420} height={840}><CabinetScreen /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="meds" title="Find & inspect" subtitle="Search and the medicine detail page">
+              <DCArtboard id="03-srch" label="03 · Search & filter" width={420} height={840}><SearchScreen /></DCArtboard>
+              <DCArtboard id="04-dtl"  label="04 · Medicine detail" width={420} height={840}><DetailScreen /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="mgmt" title="Manage" subtitle="Add, alerts, and settings">
+              <DCArtboard id="05-add" label="05 · Add medicine"   width={420} height={840}><AddMedScreen /></DCArtboard>
+              <DCArtboard id="06-al"  label="06 · Alerts"         width={420} height={840}><AlertsScreen /></DCArtboard>
+              <DCArtboard id="07-sa"  label="07 · Set up alert"   width={420} height={840}><SetAlertScreen /></DCArtboard>
+              <DCArtboard id="08-st"  label="08 · Settings"       width={420} height={840}><SettingsScreen /></DCArtboard>
+            </DCSection>
+          </DesignCanvas>
+
+          <TweaksPanel title="Tweaks" defaultOpen={false}>
+            <TweakSection title="Theme">
+              <TweakRadio label="Mode" value={t.mode} onChange={(v) => setT('mode', v)}
+                options={[{ value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]} />
+              <TweakSelect label="Accent (seed color)" value={t.accent}
+                onChange={(v) => setT('accent', v)}
+                options={[
+                  { value: 'blue',   label: 'Blue (codebase default #0A84FF)' },
+                  { value: 'teal',   label: 'Teal (calming)' },
+                  { value: 'indigo', label: 'Indigo' },
+                  { value: 'green',  label: 'Health green' },
+                ]} />
+            </TweakSection>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    applyTweaks(TWEAKS);
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
