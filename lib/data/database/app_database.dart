@@ -10,7 +10,7 @@ import '../tables/alerts_table.dart';
 
 part 'app_database.g.dart';
 
-/// Main Drift database class for MedInvent
+/// Main Drift database class for Tiny-Meds
 @DriftDatabase(tables: [MedicineInventory, Alerts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -167,7 +167,7 @@ enum MedicineStatus {
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dbFolder.path, 'medinvent.sqlite'));
+    final file = File(p.join(dbFolder.path, 'tiny_meds.sqlite'));
     return NativeDatabase.createInBackground(file);
   });
 }

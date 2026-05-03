@@ -4,23 +4,30 @@
 /dist/
 
 # Dependencies
-/pub/
 /.dart_tool/
+/pub/
+/packages/
 
-# Logs and temp files
+# Logs
 *.log
-*.tmp
 
 # Environment
 .env
 .env.local
 *.env.*
 
-# Editors
+# IDE
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
+
+# Coverage
+/coverage/
+/htmlcov/
+.coverage
 ```

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:medinvent/core/utils/date_utils.dart';
+import 'package:tiny_meds/core/utils/date_utils.dart';
 
 void main() {
   group('DateUtils', () {
