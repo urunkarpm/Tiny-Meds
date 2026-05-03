@@ -1,43 +1,61 @@
-# Build artifacts
-/build/
-/dist/
+```
+# Flutter/Dart specific
+.dart_tool/
+.build/
+.pub-cache/
+pubspec.lock
+
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
+*.pyc
+__pycache__/
 
 # Dependencies
-/.dart_tool/
-/pub/
-/packages/
-
-# Generated lock file for pub (commit this for apps)
-# pubspec.lock
-
-# Logs
-*.log
-
-# Environment
+node_modules/
+venv/
+.venv/
 .env
 .env.local
-*.env.*
+.env.*
 
-# IDE
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-*.iml
 
-# OS
+# System files
 .DS_Store
 Thumbs.db
 
 # Coverage
-/coverage/
-/htmlcov/
+coverage/
+htmlcov/
 .coverage
 
-# Claude Code memory
-.claude/
-
-# Flutter
-.flutter-plugins
-.flutter-plugins-dependencies
-.metadata
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+```

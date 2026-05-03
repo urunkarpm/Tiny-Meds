@@ -30,53 +30,62 @@ class MedicineListItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(
         horizontal: AppConstants.screenPadding,
-        vertical: 4,
+        vertical: 6,
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              // Status indicator
+              // Status indicator with gradient effect
               Container(
-                width: 4,
-                height: 60,
+                width: 5,
+                height: 64,
                 decoration: BoxDecoration(
-                  color: statusColor,
-                  borderRadius: BorderRadius.circular(2),
+                  gradient: LinearGradient(
+                    colors: [statusColor, statusColor.withValues(alpha: 0.6)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: BorderRadius.circular(4),
                 ),
               ),
               const SizedBox(width: 16),
               // Icon with status overlay
               Container(
-                width: 48,
-                height: 48,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
                     Icon(
                       _getFormIcon(medicine.form),
+                      size: 28,
                       color: colorScheme.onSurfaceVariant,
                     ),
                     if (medicine.isExpired || medicine.isExpiringSoon)
                       Positioned(
-                        top: -4,
-                        right: -4,
+                        top: -6,
+                        right: -6,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: const EdgeInsets.all(5),
                           decoration: BoxDecoration(
                             color: statusColor,
                             shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.surface,
+                              width: 2,
+                            ),
                           ),
                           child: Icon(
                             statusIcon,
-                            size: 14,
+                            size: 16,
                             color: colorScheme.surface,
                           ),
                         ),
@@ -94,6 +103,7 @@ class MedicineListItem extends StatelessWidget {
                       medicine.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
+                            letterSpacing: 0.2,
                           ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -104,58 +114,87 @@ class MedicineListItem extends StatelessWidget {
                         medicine.brand!,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
                             ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
-                        Text(
-                          '${medicine.quantity} ${medicine.unit}',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(width: 16),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 10,
+                            vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
+                            color: colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                statusIcon,
+                                Icons.inventory_2_outlined,
                                 size: 14,
-                                color: statusColor,
+                                color: colorScheme.onSurfaceVariant,
                               ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  medicine.expiryStatusLabel,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
-                                      ?.copyWith(
-                                        color: statusColor,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${medicine.quantity} ${medicine.unit}',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
                               ),
                             ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  statusIcon,
+                                  size: 14,
+                                  color: statusColor,
+                                ),
+                                const SizedBox(width: 6),
+                                Flexible(
+                                  child: Text(
+                                    medicine.expiryStatusLabel,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: statusColor,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                     if (medicine.location != null) ...[
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Row(
                         children: [
                           Icon(
@@ -163,7 +202,7 @@ class MedicineListItem extends StatelessWidget {
                             size: 14,
                             color: colorScheme.onSurfaceVariant,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Flexible(
                             child: Text(
                               medicine.location!,
@@ -185,7 +224,18 @@ class MedicineListItem extends StatelessWidget {
               ),
               // Actions menu
               PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert),
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    Icons.more_horiz_rounded,
+                    color: colorScheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                ),
                 tooltip: 'More options',
                 onSelected: (value) {
                   switch (value) {
@@ -198,22 +248,24 @@ class MedicineListItem extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'edit',
-                    child: ListTile(
-                      leading: Icon(Icons.edit),
-                      title: Text('Edit'),
-                      contentPadding: EdgeInsets.zero,
-                      minVerticalPadding: 0,
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_rounded, color: colorScheme.primary, size: 20),
+                        const SizedBox(width: 12),
+                        const Text('Edit'),
+                      ],
                     ),
                   ),
-                  const PopupMenuItem(
+                  PopupMenuItem(
                     value: 'delete',
-                    child: ListTile(
-                      leading: Icon(Icons.delete_outline),
-                      title: Text('Delete'),
-                      contentPadding: EdgeInsets.zero,
-                      minVerticalPadding: 0,
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline_rounded, color: colorScheme.error, size: 20),
+                        const SizedBox(width: 12),
+                        Text('Delete', style: TextStyle(color: colorScheme.error)),
+                      ],
                     ),
                   ),
                 ],
