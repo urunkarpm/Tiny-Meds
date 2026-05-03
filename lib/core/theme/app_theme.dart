@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Material 3 theme configuration for MedInvent
+/// Material 3 theme configuration for Tiny-Meds
 /// Follows guidelines from m3.material.io
 class AppTheme {
   AppTheme._();

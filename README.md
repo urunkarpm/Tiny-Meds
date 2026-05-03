@@ -1,4 +1,4 @@
-# MedInvent - Home Medicine Inventory Management
+# Tiny-Meds - Home Medicine Inventory Management
 
 A production-ready Flutter Android application for managing home medicine inventory and creating alerts.
 
@@ -66,7 +66,7 @@ lib/
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd medinvent
+cd tiny_meds
 ```
 
 2. Install dependencies:

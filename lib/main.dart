@@ -19,18 +19,18 @@ void main() async {
   
   runApp(
     const ProviderScope(
-      child: MedInventApp(),
+      child: TinyMedsApp(),
     ),
   );
 }
 
-class MedInventApp extends ConsumerWidget {
-  const MedInventApp({super.key});
+class TinyMedsApp extends ConsumerWidget {
+  const TinyMedsApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'MedInvent',
+      title: 'Tiny-Meds',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
