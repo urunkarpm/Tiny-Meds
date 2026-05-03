@@ -17,16 +17,20 @@ class DateUtils {
     return '${formatDate(dateTime)} at $hour:$minute $period';
   }
 
-  /// Calculate days until expiry from a given date
+  /// Calculate days until expiry from a given date (date-level, ignores time)
   static int daysUntilExpiry(DateTime expiryDate) {
     final now = DateTime.now();
-    final difference = expiryDate.difference(now);
-    return difference.inDays;
+    final today = DateTime(now.year, now.month, now.day);
+    final expiryDay = DateTime(expiryDate.year, expiryDate.month, expiryDate.day);
+    return expiryDay.difference(today).inDays;
   }
 
-  /// Check if a date is in the past
+  /// Check if a date is in the past (date-level, ignores time)
   static bool isPastDate(DateTime date) {
-    return date.isBefore(DateTime.now());
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dateOnly = DateTime(date.year, date.month, date.day);
+    return dateOnly.isBefore(today);
   }
 
   /// Get month name from month number
