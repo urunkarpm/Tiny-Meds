@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../data/database/app_database.dart';
-import '../../../data/models/enums.dart';
 import '../../../domain/entities/medicine.dart';
 import '../../providers/inventory_provider.dart';
+import '../../widgets/med_tile.dart';
+import '../../widgets/status_pill.dart';
 import 'widgets/medicine_list_item.dart';
 import 'widgets/add_medicine_bottom_sheet.dart';
+import '../search/search_screen.dart';
+import '../alerts/set_alert_screen.dart';
 
-/// Main inventory screen displaying all medicines
+/// Cabinet home screen — main medicine inventory list
+/// Design spec: 02-Cabinet
 class InventoryScreen extends ConsumerStatefulWidget {
   const InventoryScreen({super.key});
 
@@ -17,203 +22,329 @@ class InventoryScreen extends ConsumerStatefulWidget {
 }
 
 class _InventoryScreenState extends ConsumerState<InventoryScreen> {
-  final TextEditingController _searchController = TextEditingController();
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
+  MedicineStatus _selectedFilter = MedicineStatus.all;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final medicinesAsync = ref.watch(filteredMedicinesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Medicines'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search_rounded),
-            onPressed: () {
-              showSearch(context: context, delegate: MedicineSearchDelegate());
-            },
-            tooltip: 'Search medicines',
-            style: IconButton.styleFrom(
-              foregroundColor: colorScheme.onSurface,
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Filter chips with improved spacing
-          _buildFilterChips(),
-          // Medicine list
-          Expanded(
-            child: ref.watch(filteredMedicinesProvider).when(
-                  data: (medicines) => _buildMedicineList(medicines),
-                  loading: () => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          color: colorScheme.primary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Loading your medicines...',
-                          style: TextStyle(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  error: (error, stack) => Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline_rounded,
-                          size: 48,
-                          color: colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Error loading medicines',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: colorScheme.error,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '$error',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddMedicineSheet(),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Medicine'),
-      ),
-    );
-  }
-
-  Widget _buildFilterChips() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppConstants.screenPadding,
-        vertical: 12,
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: MedicineStatus.values.map((status) {
-            final isSelected = ref.watch(filterStatusProvider) == status;
-            final colorScheme = Theme.of(context).colorScheme;
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(_getStatusLabel(status)),
-                selected: isSelected,
-                onSelected: (selected) {
-                  ref.read(filterStatusProvider.notifier).state =
-                      selected ? status : MedicineStatus.all;
-                },
-                checkmarkColor: isSelected ? colorScheme.onPrimary : null,
-                selectedColor: isSelected ? colorScheme.primary : null,
-                labelStyle: TextStyle(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
-                ),
-              ),
-            );
-          }).toList(),
+      backgroundColor: colorScheme.surface,
+      body: medicinesAsync.when(
+        data: (medicines) => _buildBody(context, medicines),
+        loading: () => Center(
+          child: CircularProgressIndicator(color: colorScheme.primary),
+        ),
+        error: (error, _) => Center(
+          child: Text('Error: $error',
+              style: TextStyle(color: colorScheme.error)),
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showAddMedicineSheet,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add medicine'),
+        tooltip: 'Add medicine',
+      ),
     );
   }
 
-  Widget _buildMedicineList(List<Medicine> medicines) {
-    if (medicines.isEmpty) {
-      return _buildEmptyState();
-    }
+  Widget _buildBody(BuildContext context, List<Medicine> medicines) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final expiredCount = medicines.where((m) => m.isExpired).length;
+    final lowStockCount = medicines.where((m) => m.isLowStock && !m.isExpired).length;
+    final attentionCount = expiredCount + lowStockCount;
 
-    // Group expired items at the top
-    final expired = medicines.where((m) => m.isExpired && !m.isDisposed).toList();
-    final active = medicines.where((m) => !m.isExpired && !m.isDisposed).toList();
-
-    return RefreshIndicator(
-      onRefresh: () async {
-        // Trigger a refresh (in real app, this might sync with cloud)
-        await Future.delayed(const Duration(milliseconds: 500));
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: (expired.isNotEmpty ? 1 : 0) + active.length,
-        itemBuilder: (context, index) {
-          if (expired.isNotEmpty && index == 0) {
-            // Expired section header and items
-            return Column(
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          // ── Large top app bar ──────────────────────────────────────
+          Container(
+            color: colorScheme.surface,
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.warning_rounded,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.error,
+                // Icons row
+                Row(
+                  children: [
+                    const Spacer(),
+                    Semantics(
+                      label: 'Search medicines',
+                      child: IconButton(
+                        icon: const Icon(Icons.search_rounded),
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SearchScreen()),
+                        ),
+                        tooltip: 'Search',
                       ),
-                      const SizedBox(width: 8),
+                    ),
+                    Semantics(
+                      label: attentionCount > 0
+                          ? '$attentionCount alerts need attention'
+                          : 'Alerts',
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.notifications_outlined),
+                            onPressed: () {},
+                            tooltip: 'Alerts',
+                          ),
+                          if (attentionCount > 0)
+                            Positioned(
+                              top: 10,
+                              right: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 0),
+                                constraints: const BoxConstraints(
+                                    minWidth: 16, minHeight: 16),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.error,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '$attentionCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                // Title block
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        'Expired Medicines',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.error,
-                              fontWeight: FontWeight.bold,
+                        'Cabinet',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        attentionCount > 0
+                            ? '${medicines.length} medicines · $attentionCount need attention'
+                            : '${medicines.length} medicines',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                       ),
                     ],
                   ),
                 ),
-                ...expired.map((medicine) => MedicineListItem(
-                      medicine: medicine,
-                      onTap: () => _showMedicineDetail(medicine),
-                      onEdit: () => _showEditMedicineSheet(medicine),
-                      onDelete: () => _confirmDelete(medicine),
-                    )),
               ],
-            );
-          }
+            ),
+          ),
 
-          final adjustedIndex = expired.isNotEmpty ? index - 1 : index;
-          final medicine = active[adjustedIndex];
+          // ── Filter chips row ────────────────────────────────────
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+            child: Row(
+              children: [
+                _buildFilterChip(context, MedicineStatus.all,
+                    'All · ${medicines.length}'),
+                const SizedBox(width: 8),
+                _buildFilterChip(context, MedicineStatus.expiringSoon, 'Expiring'),
+                const SizedBox(width: 8),
+                _buildFilterChip(context, MedicineStatus.lowStock, 'Low stock'),
+                const SizedBox(width: 8),
+                _buildFilterChip(context, MedicineStatus.expired, 'Expired'),
+                const SizedBox(width: 8),
+                _buildLocationChip(context),
+              ],
+            ),
+          ),
 
-          return MedicineListItem(
-            medicine: medicine,
-            onTap: () => _showMedicineDetail(medicine),
-            onEdit: () => _showEditMedicineSheet(medicine),
-            onDelete: () => _confirmDelete(medicine),
-          );
-        },
+          // ── Scrollable list ─────────────────────────────────────
+          Expanded(
+            child: medicines.isEmpty
+                ? _buildEmptyState(context)
+                : RefreshIndicator(
+                    onRefresh: () async =>
+                        await Future.delayed(const Duration(milliseconds: 300)),
+                    child: ListView(
+                      padding:
+                          const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                      children: [
+                        // Attention card
+                        if (attentionCount > 0) ...[
+                          _buildAttentionCard(context, expiredCount, lowStockCount),
+                          const SizedBox(height: 16),
+                        ],
+                        // Section header
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 4, 4, 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                'Recently added',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                'SORT: NAME',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      color: colorScheme.onSurfaceVariant,
+                                      letterSpacing: 0.5,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Medicine list items
+                        ...medicines.map(
+                          (m) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: MedicineListItem(
+                              medicine: m,
+                              onTap: () => _showDetail(context, m),
+                              onEdit: () => _showEditSheet(m),
+                              onDelete: () => _confirmDelete(context, m),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildFilterChip(
+      BuildContext context, MedicineStatus status, String label) {
+    final isSelected = _selectedFilter == status;
     final colorScheme = Theme.of(context).colorScheme;
-    
+    return FilterChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        setState(() {
+          _selectedFilter = selected ? status : MedicineStatus.all;
+        });
+        ref.read(filterStatusProvider.notifier).state =
+            selected ? status : MedicineStatus.all;
+      },
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      selectedColor: colorScheme.surfaceContainerHigh,
+      checkmarkColor: colorScheme.onSurface,
+      labelStyle: TextStyle(
+        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+        color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+        fontSize: 14,
+      ),
+      side: isSelected
+          ? BorderSide.none
+          : BorderSide(color: colorScheme.outline),
+      showCheckmark: isSelected,
+    );
+  }
+
+  Widget _buildLocationChip(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return FilterChip(
+      avatar: Icon(Icons.location_on_outlined,
+          size: 16, color: colorScheme.onSurfaceVariant),
+      label: const Text('By location'),
+      selected: false,
+      onSelected: (_) {},
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      labelStyle: TextStyle(
+        fontWeight: FontWeight.w500,
+        color: colorScheme.onSurfaceVariant,
+        fontSize: 14,
+      ),
+      side: BorderSide(color: colorScheme.outline),
+      showCheckmark: false,
+    );
+  }
+
+  Widget _buildAttentionCard(
+      BuildContext context, int expiredCount, int lowStockCount) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final total = expiredCount + lowStockCount;
+    final parts = <String>[];
+    if (expiredCount > 0) {
+      parts.add('$expiredCount expired');
+    }
+    if (lowStockCount > 0) {
+      parts.add('$lowStockCount running low');
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: colorScheme.error,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.warning_rounded, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '$total ${total == 1 ? 'thing needs' : 'things need'} a look',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onErrorContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  parts.join(' · '),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onErrorContainer
+                            .withValues(alpha: 0.8),
+                      ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded,
+              color: colorScheme.onErrorContainer, size: 22),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -241,40 +372,16 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              'Tap the button below to add your first medicine and start tracking your inventory',
+              'Tap the button below to add your first medicine and start tracking your inventory.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(height: 32),
-          FilledButton.icon(
-            onPressed: _showAddMedicineSheet,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add Medicine'),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-            ),
-          ),
         ],
       ),
     );
-  }
-
-  String _getStatusLabel(MedicineStatus status) {
-    switch (status) {
-      case MedicineStatus.all:
-        return 'All';
-      case MedicineStatus.active:
-        return 'Active';
-      case MedicineStatus.expiringSoon:
-        return 'Expiring Soon';
-      case MedicineStatus.expired:
-        return 'Expired';
-      case MedicineStatus.lowStock:
-        return 'Low Stock';
-    }
   }
 
   void _showAddMedicineSheet() {
@@ -282,49 +389,46 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => const AddMedicineBottomSheet(),
+      builder: (_) => const AddMedicineBottomSheet(),
     );
   }
 
-  void _showEditMedicineSheet(Medicine medicine) {
+  void _showEditSheet(Medicine medicine) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => AddMedicineBottomSheet(medicine: medicine),
+      builder: (_) => AddMedicineBottomSheet(medicine: medicine),
     );
   }
 
-  void _showMedicineDetail(Medicine medicine) {
+  void _showDetail(BuildContext context, Medicine medicine) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MedicineDetailScreen(medicine: medicine),
+        builder: (_) => MedicineDetailScreen(medicine: medicine),
       ),
     );
   }
 
-  void _confirmDelete(Medicine medicine) {
+  void _confirmDelete(BuildContext context, Medicine medicine) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Medicine'),
-        content: Text(
-          'Are you sure you want to delete "${medicine.name}"? This action cannot be undone.',
-        ),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete medicine'),
+        content: Text('Delete "${medicine.name}"? This cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(ctx);
               ref.read(inventoryProvider.notifier).deleteMedicine(medicine.id!);
             },
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
+                backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -333,358 +437,609 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   }
 }
 
-/// Medicine detail screen
-class MedicineDetailScreen extends ConsumerWidget {
+// ── Medicine detail screen ────────────────────────────────────────────────────
+/// Design spec: 04-Detail
+class MedicineDetailScreen extends ConsumerStatefulWidget {
   final Medicine medicine;
-
   const MedicineDetailScreen({super.key, required this.medicine});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MedicineDetailScreen> createState() =>
+      _MedicineDetailScreenState();
+}
+
+class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
+  late Medicine _medicine;
+
+  @override
+  void initState() {
+    super.initState();
+    _medicine = widget.medicine;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final days = _medicine.daysUntilExpiry;
+    final statusColor = _getStatusColor(colorScheme, days);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(medicine.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () => _showEditMedicineSheet(context, ref),
-            tooltip: 'Edit',
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            onPressed: () => _confirmDelete(context, ref),
-            tooltip: 'Delete',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: colorScheme.surface,
+      body: SafeArea(
+        bottom: false,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildInfoCard(context),
-            const SizedBox(height: 16),
-            _buildActions(context, ref),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+            // ── App bar ─────────────────────────────────────────────
+            SizedBox(
+              height: 56,
+              child: Row(
+                children: [
+                  Semantics(
+                    label: 'Back',
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      onPressed: () => Navigator.pop(context),
+                      tooltip: 'Back',
+                    ),
                   ),
-                  child: Icon(
-                    Icons.medication_rounded,
-                    color: colorScheme.onPrimaryContainer,
-                    size: 28,
+                  const Spacer(),
+                  Semantics(
+                    label: 'Edit medicine',
+                    child: IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      onPressed: () => _showEditSheet(context),
+                      tooltip: 'Edit',
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        medicine.name,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      if (medicine.brand != null)
-                        Text(
-                          medicine.brand!,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                  Semantics(
+                    label: 'More options',
+                    child: PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert_rounded),
+                      tooltip: 'More options',
+                      onSelected: (value) {
+                        if (value == 'delete') _confirmDelete(context);
+                        if (value == 'dispose') {
+                          ref
+                              .read(inventoryProvider.notifier)
+                              .markAsDisposed(_medicine.id!);
+                          Navigator.pop(context);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          value: 'dispose',
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle_outline_rounded,
+                                  color: colorScheme.primary, size: 20),
+                              const SizedBox(width: 12),
+                              const Text('Mark as disposed'),
+                            ],
+                          ),
                         ),
-                    ],
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline_rounded,
+                                  color: colorScheme.error, size: 20),
+                              const SizedBox(width: 12),
+                              Text('Delete',
+                                  style: TextStyle(color: colorScheme.error)),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const Divider(height: 32),
-            _buildInfoRow(context, 'Form', medicine.form.displayName),
-            if (medicine.strength != null)
-              _buildInfoRow(context, 'Strength', medicine.strength!),
-            _buildInfoRow(context, 'Quantity', '${medicine.quantity} ${medicine.unit}'),
-            _buildInfoRow(
-              context,
-              'Expiry Date',
-              _formatDate(medicine.expiryDate),
-              isError: medicine.isExpired,
-              icon: medicine.isExpired ? Icons.warning_rounded : Icons.calendar_today_rounded,
-            ),
-            if (medicine.location != null)
-              _buildInfoRow(context, 'Location', medicine.location!, icon: Icons.location_on_outlined),
-            if (medicine.lowStockThreshold != null)
-              _buildInfoRow(
-                context,
-                'Low Stock Threshold',
-                '${medicine.lowStockThreshold} ${medicine.unit}',
-                icon: Icons.inventory_2_outlined,
+                ],
               ),
-          ],
-        ),
-      ),
-    );
-  }
+            ),
 
-  Widget _buildInfoRow(BuildContext context, String label, String value, {bool isError = false, IconData? icon}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (icon != null) ...[
-            Icon(
-              icon,
-              size: 18,
-              color: isError
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 12),
-          ] else
-            SizedBox(width: 24),
-          Expanded(
-            flex: 1,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: isError
-                        ? Theme.of(context).colorScheme.error
-                        : null,
-                    fontWeight: isError ? FontWeight.bold : FontWeight.w500,
-                  ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActions(BuildContext context, WidgetRef ref) {
-    final colorScheme = Theme.of(context).colorScheme;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Actions',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            OutlinedButton.icon(
-              onPressed: () => _showEditMedicineSheet(context, ref),
-              icon: const Icon(Icons.edit_rounded),
-              label: const Text('Edit'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              ),
-            ),
-            if (!medicine.isExpired)
-              FilledButton.icon(
-                onPressed: () {
-                  // Navigate to create alert screen
-                },
-                icon: const Icon(Icons.notifications_active_rounded),
-                label: const Text('Create Alert'),
-              ),
-            if (medicine.isExpired && !medicine.isDisposed)
-              FilledButton.icon(
-                onPressed: () {
-                  ref.read(inventoryProvider.notifier).markAsDisposed(medicine.id!);
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Medicine marked as disposed'),
-                      backgroundColor: colorScheme.primary,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+            // ── Scrollable body ─────────────────────────────────────
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 100),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Hero block
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              MedTile(
+                                form: _medicine.form.name,
+                                hue: _medicine.medHue,
+                                size: 88,
+                                rounded: 22,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _medicine.name,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineSmall
+                                            ?.copyWith(
+                                                fontWeight: FontWeight.w600),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        [
+                                          if (_medicine.strength != null)
+                                            _medicine.strength!,
+                                          _medicine.form.displayName,
+                                        ].join(' · '),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
+                                            ),
+                                      ),
+                                      if (_medicine.brand != null) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          'by ${_medicine.brand}',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                      const SizedBox(height: 12),
+                                      StatusPill(
+                                        kind: _medicine.statusPillKind,
+                                        label: _medicine.statusPillLabel,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Stat cards
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildStatCard(
+                                  context,
+                                  label: 'QUANTITY',
+                                  value: '${_medicine.quantity}',
+                                  unit: _medicine.unit,
+                                  progress: _medicine.lowStockThreshold != null
+                                      ? (_medicine.quantity /
+                                              (_medicine.lowStockThreshold! *
+                                                  3))
+                                          .clamp(0.0, 1.0)
+                                      : null,
+                                  progressColor: statusColor,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildExpiryCard(
+                                    context, days, statusColor),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.check_circle_rounded),
-                label: const Text('Mark as Disposed'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colorScheme.error,
-                  foregroundColor: colorScheme.onError,
+
+                    // Details list
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Details',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              children: [
+                                if (_medicine.location != null)
+                                  _buildDetailRow(
+                                    context,
+                                    icon: Icons.location_on_outlined,
+                                    label: 'Where',
+                                    value: _medicine.location!,
+                                    isLast: false,
+                                  ),
+                                if (_medicine.openedDate != null)
+                                  _buildDetailRow(
+                                    context,
+                                    icon: Icons.calendar_today_outlined,
+                                    label: 'Opened',
+                                    value: _formatDate(_medicine.openedDate!),
+                                    isLast: false,
+                                  ),
+                                _buildDetailRow(
+                                  context,
+                                  icon: Icons.calendar_today_outlined,
+                                  label: 'Expires',
+                                  value: _formatDate(_medicine.expiryDate),
+                                  isLast: _medicine.lowStockThreshold == null,
+                                ),
+                                if (_medicine.lowStockThreshold != null)
+                                  _buildDetailRow(
+                                    context,
+                                    icon: Icons.inventory_2_outlined,
+                                    label: 'Alert below',
+                                    value:
+                                        '${_medicine.lowStockThreshold} ${_medicine.unit}',
+                                    isLast: true,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Alerts section
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Alerts',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => SetAlertScreen(
+                                        medicine: _medicine),
+                                  ),
+                                ),
+                                child: const Text('+ Add alert'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.notifications_outlined,
+                                    color: colorScheme.onSurfaceVariant,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'No alerts set up yet.',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ),
+
+            // ── Sticky footer ────────────────────────────────────────
+            Container(
+              padding: EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  12 + MediaQuery.of(context).padding.bottom),
+              decoration: BoxDecoration(
+                color: colorScheme.surface,
+                border: Border(
+                    top: BorderSide(color: colorScheme.outlineVariant)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _takeDose,
+                      icon: const Icon(Icons.remove_rounded, size: 18),
+                      label: const Text('Take dose'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => _showEditSheet(context),
+                      style: FilledButton.styleFrom(
+                          minimumSize: const Size(0, 48)),
+                      child: const Text('Refill'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required String unit,
+    double? progress,
+    required Color progressColor,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.5,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                value,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                unit,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+          if (progress != null) ...[
+            const SizedBox(height: 12),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(2),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 4,
+                backgroundColor: colorScheme.outlineVariant,
+                valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExpiryCard(
+      BuildContext context, int days, Color statusColor) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final expDate = _medicine.expiryDate;
+    final expLabel =
+        '${months[expDate.month - 1]} ${expDate.day}, ${expDate.year}';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'EXPIRES',
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                  letterSpacing: 0.5,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                days < 0 ? '–' : '$days',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: statusColor,
+                    ),
+              ),
+              if (days >= 0) ...[
+                const SizedBox(width: 6),
+                Text(
+                  days == 1 ? 'day' : 'days',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            days < 0 ? 'Expired' : expLabel,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required String value,
+    required bool isLast,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        if (!isLast)
+          Divider(
+            height: 1,
+            indent: 50,
+            color: colorScheme.outlineVariant,
+          ),
       ],
     );
   }
 
+  Color _getStatusColor(ColorScheme cs, int days) {
+    if (days < 0) return cs.error;
+    if (days == 0) return Colors.red;
+    if (days <= AppConstants.expiringVerySoonThresholdDays) {
+      return const Color(0xFFFF9800);
+    }
+    if (days <= AppConstants.expiringSoonThresholdDays) {
+      return const Color(0xFFFFA726);
+    }
+    return cs.primary;
+  }
+
   String _formatDate(DateTime date) {
     const months = [
       'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'July', 'August', 'September', 'October', 'November', 'December',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
-  void _showEditMedicineSheet(BuildContext context, WidgetRef ref) {
-    Navigator.pop(context);
+  void _takeDose() {
+    if (_medicine.quantity <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No doses remaining.')),
+      );
+      return;
+    }
+    final updated = _medicine.copyWith(quantity: _medicine.quantity - 1);
+    ref.read(inventoryProvider.notifier).updateMedicine(updated);
+    setState(() => _medicine = updated);
+  }
+
+  void _showEditSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (context) => AddMedicineBottomSheet(medicine: medicine),
+      builder: (_) => AddMedicineBottomSheet(medicine: _medicine),
     );
   }
 
-  void _confirmDelete(BuildContext context, WidgetRef ref) {
+  void _confirmDelete(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.warning_rounded, color: Theme.of(context).colorScheme.error),
-            const SizedBox(width: 12),
-            const Text('Delete Medicine'),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to delete "${medicine.name}"? This action cannot be undone.',
-        ),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete medicine'),
+        content: Text('Delete "${_medicine.name}"? This cannot be undone.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
+              Navigator.pop(ctx);
+              ref
+                  .read(inventoryProvider.notifier)
+                  .deleteMedicine(_medicine.id!);
               Navigator.pop(context);
-              ref.read(inventoryProvider.notifier).deleteMedicine(medicine.id!);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: const Text('Medicine deleted successfully'),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
             },
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
+                backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Delete'),
           ),
         ],
       ),
     );
-  }
-}
-
-/// Search delegate for medicine search
-class MedicineSearchDelegate extends SearchDelegate {
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear),
-        onPressed: () {
-          query = '';
-        },
-      ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        close(context, null);
-      },
-    );
-  }
-
-  @override
-  Widget buildResults(BuildContext context) {
-    return Consumer(
-      builder: (context, ref, child) {
-        ref.read(searchQueryProvider.notifier).state = query;
-        return ref.watch(filteredMedicinesProvider).when(
-              data: (medicines) => ListView.builder(
-                itemCount: medicines.length,
-                itemBuilder: (context, index) {
-                  final medicine = medicines[index];
-                  return ListTile(
-                    title: Text(medicine.name),
-                    subtitle: Text(
-                      '${medicine.quantity} ${medicine.unit} - Expires: ${_formatDate(medicine.expiryDate)}',
-                    ),
-                    onTap: () {
-                      close(context, null);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              MedicineDetailScreen(medicine: medicine),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, stack) => Center(child: Text('Error: $error')),
-            );
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    return buildResults(context);
-  }
-
-  String _formatDate(DateTime date) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 }

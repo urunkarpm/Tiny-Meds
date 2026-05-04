@@ -4,20 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/theme/app_theme.dart';
-import 'presentation/screens/inventory/inventory_screen.dart';
+import 'presentation/screens/onboarding/onboarding_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Set preferred orientations for Android
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
-  // Initialize timezone for notifications
+
   tz.initializeTimeZones();
-  
+
   runApp(
     const ProviderScope(
       child: TinyMedsApp(),
@@ -31,12 +29,12 @@ class TinyMedsApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp(
-      title: 'Tiny-Meds',
+      title: 'Tiny Meds',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const InventoryScreen(),
+      home: const OnboardingScreen(),
     );
   }
 }

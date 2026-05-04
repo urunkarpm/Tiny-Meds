@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Settings screen - App preferences and configuration
-/// Matches design spec 08-Settings
+/// Settings screen — app preferences and configuration
+/// Design spec: 08-Settings
+/// Nav bar is provided by MainShell — not rendered here.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -11,59 +12,69 @@ class SettingsScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
+        bottom: false,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
           children: [
             // Header
-            Text(
-              'Settings',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 24, 4, 24),
+              child: Text(
+                'Settings',
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
             ),
-            const SizedBox(height: 24),
-            
+
             // You card
             _buildYouCard(context),
             const SizedBox(height: 24),
-            
+
             // Notifications group
-            Text(
-              'Notifications',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.5,
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'Notifications',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
             ),
-            const SizedBox(height: 8),
             _buildNotificationsGroup(context),
             const SizedBox(height: 24),
-            
+
             // Defaults group
-            Text(
-              'Defaults',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.5,
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'Defaults',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
             ),
-            const SizedBox(height: 8),
             _buildDefaultsGroup(context),
             const SizedBox(height: 24),
-            
+
             // Your data group
-            Text(
-              'Your data',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    letterSpacing: 0.5,
-                  ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                'Your data',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
             ),
-            const SizedBox(height: 8),
             _buildYourDataGroup(context),
             const SizedBox(height: 32),
-            
+
             // Footer
             Center(
               child: Text(
@@ -73,110 +84,96 @@ class SettingsScreen extends ConsumerWidget {
                     ),
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: 3,
-        onDestinationSelected: (index) {
-          // Handle navigation
-        },
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Cabinet'),
-          NavigationDestination(icon: Icon(Icons.notifications_rounded), label: 'Alerts'),
-          NavigationDestination(icon: Icon(Icons.calendar_today_outlined), label: 'Calendar'),
-          NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'Settings'),
-        ],
       ),
     );
   }
 
   Widget _buildYouCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    return Card(
-      color: colorScheme.primaryContainer,
-      child: ListTile(
-        leading: Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: colorScheme.primary,
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text(
-              'P',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: colorScheme.primary,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                'P',
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
-        ),
-        title: Text(
-          'Your cabinet',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-        ),
-        subtitle: Text(
-          '22 medicines · since April 2026',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-              ),
-        ),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () {
-          // Navigate to profile
-        },
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your cabinet',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '22 medicines · since April 2026',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onPrimaryContainer
+                            .withValues(alpha: 0.8),
+                      ),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right_rounded,
+              color: colorScheme.onPrimaryContainer),
+        ],
       ),
     );
   }
 
   Widget _buildNotificationsGroup(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    return Card(
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
-          SwitchListTile(
-            secondary: const Icon(Icons.access_time_rounded),
-            title: const Text('Expiry alerts'),
-            value: true,
-            onChanged: (value) {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          SwitchListTile(
-            secondary: const Icon(Icons.inventory_2_rounded),
-            title: const Text('Low stock alerts'),
-            value: true,
-            onChanged: (value) {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          SwitchListTile(
-            secondary: const Icon(Icons.notifications_rounded),
-            title: const Text('Dose reminders'),
-            value: false,
-            onChanged: (value) {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          ListTile(
-            leading: const Icon(Icons.bedtime_rounded),
-            title: const Text('Quiet hours'),
-            subtitle: const Text('Mute between 10:00 PM and 7:00 AM'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          ListTile(
-            leading: const Icon(Icons.music_note_rounded),
-            title: const Text('Notification sound'),
-            subtitle: const Text('Soft chime'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
+          _switchRow(context, Icons.access_time_rounded, 'Expiry alerts',
+              null, true, false),
+          _divider(colorScheme),
+          _switchRow(context, Icons.inventory_2_rounded, 'Low stock alerts',
+              null, true, false),
+          _divider(colorScheme),
+          _switchRow(context, Icons.notifications_rounded, 'Dose reminders',
+              null, false, false),
+          _divider(colorScheme),
+          _navRow(context, Icons.bedtime_rounded, 'Quiet hours',
+              'Mute between 10:00 PM and 7:00 AM', null, false),
+          _divider(colorScheme),
+          _navRow(context, Icons.music_note_rounded, 'Notification sound',
+              null, 'Soft chime', true),
         ],
       ),
     );
@@ -184,33 +181,22 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _buildDefaultsGroup(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    return Card(
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
-          ListTile(
-            leading: const Icon(Icons.schedule_rounded),
-            title: const Text('Default lead time'),
-            subtitle: const Text('7 days'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          ListTile(
-            leading: const Icon(Icons.inventory_2_rounded),
-            title: const Text('Low-stock threshold'),
-            subtitle: const Text('3 doses'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          ListTile(
-            leading: const Icon(Icons.location_on_rounded),
-            title: const Text('Default location'),
-            subtitle: const Text('Kitchen'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
+          _navRow(context, Icons.schedule_rounded, 'Default lead time',
+              null, '7 days', false),
+          _divider(colorScheme),
+          _navRow(context, Icons.inventory_2_rounded, 'Low-stock threshold',
+              null, '3 doses', false),
+          _divider(colorScheme),
+          _navRow(context, Icons.location_on_outlined, 'Default location',
+              null, 'Kitchen', true),
         ],
       ),
     );
@@ -218,63 +204,169 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _buildYourDataGroup(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    return Card(
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
-          ListTile(
-            leading: Icon(Icons.download_rounded, color: colorScheme.primary),
-            title: const Text('Export as CSV'),
-            subtitle: const Text('Download your medicine list'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          ListTile(
-            leading: const Icon(Icons.info_outline_rounded),
-            title: const Text('Medical disclaimer'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {},
-          ),
-          Divider(height: 1, color: colorScheme.outlineVariant),
-          ListTile(
-            leading: Icon(Icons.delete_forever_rounded, color: colorScheme.error),
-            title: Text(
-              'Reset cabinet',
-              style: TextStyle(color: colorScheme.error),
+          _navRow(context, Icons.download_rounded, 'Export as CSV',
+              'Download your medicine list', null, false),
+          _divider(colorScheme),
+          _navRow(context, Icons.info_outline_rounded, 'Medical disclaimer',
+              null, null, false),
+          _divider(colorScheme),
+          _dangerRow(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _switchRow(BuildContext context, IconData icon, String label,
+      String? sub, bool value, bool isLast) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: Theme.of(context).textTheme.bodyLarge),
+                if (sub != null) ...[
+                  const SizedBox(height: 2),
+                  Text(sub,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          )),
+                ],
+              ],
             ),
-            subtitle: const Text('Permanently delete all data'),
-            trailing: Icon(Icons.chevron_right_rounded, color: colorScheme.error),
-            onTap: () {
-              _showResetConfirmation(context);
-            },
+          ),
+          Switch(
+            value: value,
+            onChanged: (_) {},
           ),
         ],
       ),
     );
   }
 
+  Widget _navRow(BuildContext context, IconData icon, String label,
+      String? sub, String? trailing, bool isLast) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () {},
+      borderRadius: isLast
+          ? const BorderRadius.vertical(bottom: Radius.circular(16))
+          : BorderRadius.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(icon, size: 22, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: Theme.of(context).textTheme.bodyLarge),
+                  if (sub != null) ...[
+                    const SizedBox(height: 2),
+                    Text(sub,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            )),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null)
+              Text(trailing,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      )),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right_rounded,
+                color: colorScheme.onSurfaceVariant, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _dangerRow(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: () => _showResetConfirmation(context),
+      borderRadius:
+          const BorderRadius.vertical(bottom: Radius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(Icons.delete_forever_rounded,
+                size: 22, color: colorScheme.error),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Reset cabinet',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.error,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Permanently delete all data',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded,
+                color: colorScheme.error, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _divider(ColorScheme colorScheme) {
+    return Divider(
+      height: 1,
+      indent: 52,
+      color: colorScheme.outlineVariant,
+    );
+  }
+
   void _showResetConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Reset cabinet?'),
         content: const Text(
-          'This will permanently delete all your medicine data. This action cannot be undone.',
+          'This will permanently delete all your medicine data. This cannot be undone.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
           FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Reset all data
-            },
+            onPressed: () => Navigator.pop(ctx),
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
+                backgroundColor: Theme.of(context).colorScheme.error),
             child: const Text('Reset'),
           ),
         ],

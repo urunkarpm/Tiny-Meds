@@ -42,7 +42,6 @@ class MedTile extends StatelessWidget {
   }
 
   Color _hslToColor(double h, double s, double l) {
-    // Simple HSL to Color conversion for gradient generation
     final rad = h * (3.141592653589793 / 180);
     final c = (1 - (2 * l - 1).abs()) * s;
     final x = c * (1 - ((rad / (3.141592653589793 / 3)) % 2 - 1).abs());
@@ -80,10 +79,11 @@ class _FormGlyphPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final whitePaint = Paint()..color = Colors.white.withOpacity(0.9);
-    final colorPaint = Paint()..color = _hslToColor(hue, 0.8, 0.55).withOpacity(0.85);
+    final accentColor = _hslToColor(hue, 0.8, 0.55);
+    final whitePaint = Paint()..color = Colors.white.withValues(alpha: 0.9);
+    final colorPaint = Paint()..color = accentColor.withValues(alpha: 0.85);
     final strokePaint = Paint()
-      ..color = _hslToColor(hue, 0.8, 0.55)
+      ..color = accentColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
       ..strokeCap = StrokeCap.round;
@@ -99,10 +99,10 @@ class _FormGlyphPainter extends CustomPainter {
         _drawLiquid(canvas, size, whitePaint, colorPaint);
         break;
       case 'cream':
-        _drawCream(canvas, size, whitePaint, colorPaint);
+        _drawCream(canvas, size, whitePaint, colorPaint, accentColor);
         break;
       case 'inhaler':
-        _drawInhaler(canvas, size, whitePaint, colorPaint);
+        _drawInhaler(canvas, size, whitePaint, colorPaint, accentColor);
         break;
       default:
         _drawOther(canvas, size, whitePaint, colorPaint);
@@ -110,7 +110,10 @@ class _FormGlyphPainter extends CustomPainter {
   }
 
   void _drawTablet(Canvas canvas, Size size, Paint whitePaint, Paint strokePaint) {
-    final rect = Rect.fromCircle(center: Offset(size.width / 2, size.height / 2), radius: size.width * 0.35);
+    final rect = Rect.fromCircle(
+      center: Offset(size.width / 2, size.height / 2),
+      radius: size.width * 0.35,
+    );
     canvas.drawOval(rect, whitePaint);
     canvas.drawLine(
       Offset(size.width * 0.15, size.height / 2),
@@ -121,7 +124,9 @@ class _FormGlyphPainter extends CustomPainter {
 
   void _drawCapsule(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
     canvas.save();
+    canvas.translate(size.width / 2, size.height / 2);
     canvas.rotate(-30 * 3.141592653589793 / 180);
+    canvas.translate(-size.width / 2, -size.height / 2);
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(size.width * 0.1, size.height * 0.35, size.width * 0.8, size.height * 0.3),
       Radius.circular(size.height * 0.15),
@@ -150,44 +155,50 @@ class _FormGlyphPainter extends CustomPainter {
       ..lineTo(size.width * 0.35, size.height * 0.4)
       ..close();
     canvas.drawPath(path, whitePaint);
-    
-    final liquidRect = Rect.fromLTWH(size.width * 0.35, size.height * 0.55, size.width * 0.3, size.height * 0.25);
+
+    final liquidRect = Rect.fromLTWH(
+      size.width * 0.35, size.height * 0.55, size.width * 0.3, size.height * 0.25,
+    );
     canvas.drawRect(liquidRect, colorPaint);
   }
 
-  void _drawCream(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
+  void _drawCream(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint, Color accentColor) {
     final bodyRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(size.width * 0.25, size.height * 0.3, size.width * 0.5, size.height * 0.55),
       Radius.circular(size.width * 0.075),
     );
     canvas.drawRRect(bodyRect, whitePaint);
-    
+
     final capRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(size.width * 0.35, size.height * 0.15, size.width * 0.3, size.height * 0.15),
       Radius.circular(size.width * 0.0375),
     );
     canvas.drawRRect(capRect, colorPaint);
-    
+
     canvas.drawRect(
       Rect.fromLTWH(size.width * 0.325, size.height * 0.45, size.width * 0.35, size.height * 0.075),
-      colorPaint.withOpacity(0.4),
+      Paint()..color = accentColor.withValues(alpha: 0.4),
     );
   }
 
-  void _drawInhaler(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
+  void _drawInhaler(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint, Color accentColor) {
     final bodyRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(size.width * 0.3, size.height * 0.15, size.width * 0.4, size.height * 0.55),
       Radius.circular(size.width * 0.075),
     );
     canvas.drawRRect(bodyRect, whitePaint);
-    
+
     final baseRect = RRect.fromRectAndRadius(
       Rect.fromLTWH(size.width * 0.3, size.height * 0.7, size.width * 0.4, size.height * 0.15),
       Radius.circular(size.width * 0.05),
     );
     canvas.drawRRect(baseRect, colorPaint);
-    
-    canvas.drawCircle(Offset(size.width / 2, size.height * 0.35), size.width * 0.075, colorPaint.withOpacity(0.5));
+
+    canvas.drawCircle(
+      Offset(size.width / 2, size.height * 0.35),
+      size.width * 0.075,
+      Paint()..color = accentColor.withValues(alpha: 0.5),
+    );
   }
 
   void _drawOther(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {

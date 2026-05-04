@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 enum MedicineForm {
   liquid,
   tablet,
+  capsule,
   cream,
   inhaler,
   other,
@@ -17,6 +18,8 @@ extension MedicineFormExtension on MedicineForm {
         return 'Liquid';
       case MedicineForm.tablet:
         return 'Tablet';
+      case MedicineForm.capsule:
+        return 'Capsule';
       case MedicineForm.cream:
         return 'Cream';
       case MedicineForm.inhaler:
