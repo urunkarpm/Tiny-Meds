@@ -55,17 +55,65 @@ class Medicine {
 
   /// Get expiry status label
   String get expiryStatusLabel {
+    if (isExpired) return 'Expired';
+    if (daysUntilExpiry == 0) return 'Expires Today';
+    if (isExpiringSoon) return 'Expiring Soon';
+    if (daysUntilExpiry <= 30) return 'Expiring Within 30 Days';
+    return 'Active';
+  }
+
+  /// Get status pill kind for StatusPill widget
+  String get statusPillKind {
+    if (isExpired) return 'expired';
+    if (daysUntilExpiry == 0) return 'today';
+    if (isExpiringSoon) return 'soon';
+    if (isLowStock) return 'low';
+    if (daysUntilExpiry <= 30) return 'month';
+    return 'active';
+  }
+
+  /// Get status pill label for StatusPill widget
+  String get statusPillLabel {
     if (isExpired) {
-      return 'Expired';
-    } else if (daysUntilExpiry == 0) {
-      return 'Expires Today';
-    } else if (isExpiringSoon) {
-      return 'Expiring Soon';
-    } else if (daysUntilExpiry <= 30) {
-      return 'Expiring Within 30 Days';
-    } else {
-      return 'Active';
+      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return 'Expired ${months[expiryDate.month - 1]} ${expiryDate.day}';
     }
+    if (daysUntilExpiry == 0) return 'Expires today';
+    if (isExpiringSoon) return 'Expires in $daysUntilExpiry days';
+    if (isLowStock) return 'Low stock';
+    if (daysUntilExpiry <= 30) return 'Expires in $daysUntilExpiry days';
+    return 'Active';
+  }
+
+  /// Get a consistent hue for this medicine (form-based with name variation)
+  double get medHue {
+    int hash = 0;
+    for (final char in name.runes) {
+      hash = ((hash * 31) + char) & 0xFFFFFF;
+    }
+    double base;
+    switch (form) {
+      case MedicineForm.capsule:
+        base = 200;
+        break;
+      case MedicineForm.tablet:
+        base = 35;
+        break;
+      case MedicineForm.liquid:
+        base = 320;
+        break;
+      case MedicineForm.cream:
+        base = 15;
+        break;
+      case MedicineForm.inhaler:
+        base = 180;
+        break;
+      default:
+        base = 260;
+        break;
+    }
+    return ((base + (hash % 60) - 30) % 360 + 360) % 360;
   }
 
   /// Create a copy with updated fields
