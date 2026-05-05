@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// App-wide constants following Material 3 guidelines
 class AppConstants {
   AppConstants._();

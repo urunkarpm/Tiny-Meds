@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../../models/enums.dart';
+import 'profiles_table.dart';
 
 /// Drift table for storing medicine inventory items
 class MedicineInventory extends Table {
@@ -13,7 +14,7 @@ class MedicineInventory extends Table {
   TextColumn get brand => text().withLength(min: 1, max: 200).nullable()();
 
   /// Medicine form: liquid, tablet, cream, inhaler, other (required)
-  TextColumn get form => text().map(MedicineFormConverter())();
+  TextColumn get form => text().map(const MedicineFormConverter())();
 
   /// Strength (optional, e.g., "500mg", "10%")
   TextColumn get strength => text().withLength(min: 1, max: 100).nullable()();
@@ -35,6 +36,18 @@ class MedicineInventory extends Table {
 
   /// Low stock threshold for alerts (optional)
   IntColumn get lowStockThreshold => integer().nullable()();
+
+  /// How many times per day to take this medicine
+  IntColumn get frequency => integer().nullable()();
+
+  /// Amount per dose
+  RealColumn get doseAmount => real().nullable()();
+
+  /// Profile association (required for organization)
+  IntColumn get profileId => integer().nullable().references(Profiles, #id)();
+
+  /// Whether the item needs a refill (shopping list)
+  BoolColumn get needsRefill => boolean().withDefault(const Constant(false))();
 
   /// Whether the item has been disposed
   BoolColumn get isDisposed => boolean().withDefault(const Constant(false))();

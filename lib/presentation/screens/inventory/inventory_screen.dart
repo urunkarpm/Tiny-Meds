@@ -6,12 +6,14 @@ import '../../../data/database/app_database.dart';
 import '../../../data/models/enums.dart';
 import '../../../domain/entities/medicine.dart';
 import '../../providers/inventory_provider.dart';
+import '../../providers/profile_provider.dart';
 import '../../widgets/med_tile.dart';
 import '../../widgets/status_pill.dart';
 import 'widgets/medicine_list_item.dart';
 import 'widgets/add_medicine_bottom_sheet.dart';
 import '../search/search_screen.dart';
 import '../alerts/set_alert_screen.dart';
+import '../../widgets/profile_switcher.dart';
 
 /// Cabinet home screen — main medicine inventory list
 /// Design spec: 02-Cabinet
@@ -71,6 +73,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 // Icons row
                 Row(
                   children: [
+                    const ProfileSwitcher(),
                     const Spacer(),
                     Semantics(
                       label: 'Search medicines',
@@ -92,30 +95,37 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         children: [
                           IconButton(
                             icon: const Icon(Icons.notifications_outlined),
-                            onPressed: () {},
+                            onPressed: () {
+                              ref.read(bottomNavProvider.notifier).state = 1;
+                            },
                             tooltip: 'Alerts',
                           ),
                           if (attentionCount > 0)
                             Positioned(
                               top: 10,
                               right: 10,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 4, vertical: 0),
-                                constraints: const BoxConstraints(
-                                    minWidth: 16, minHeight: 16),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.error,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '$attentionCount',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
+                              child: GestureDetector(
+                                onTap: () {
+                                  ref.read(bottomNavProvider.notifier).state = 1;
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 0),
+                                  constraints: const BoxConstraints(
+                                      minWidth: 16, minHeight: 16),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.error,
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
-                                  textAlign: TextAlign.center,
+                                  child: Text(
+                                    '$attentionCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
                             ),
@@ -132,15 +142,13 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     children: [
                       Text(
                         'Cabinet',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         attentionCount > 0
-                            ? '${medicines.length} medicines · $attentionCount need attention'
-                            : '${medicines.length} medicines',
+                            ? '${medicines.length} medicines in total\n$attentionCount items need your attention'
+                            : '${medicines.length} medicines tracked',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -167,7 +175,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 const SizedBox(width: 8),
                 _buildFilterChip(context, MedicineStatus.expired, 'Expired'),
                 const SizedBox(width: 8),
-                _buildLocationChip(context),
+                _buildLocationChip(context, medicines),
               ],
             ),
           ),
@@ -203,15 +211,29 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                                     .titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
-                              Text(
-                                'SORT: NAME',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(
-                                      color: colorScheme.onSurfaceVariant,
-                                      letterSpacing: 0.5,
-                                    ),
+                              InkWell(
+                                onTap: () {
+                                  final current = ref.read(sortOrderProvider);
+                                  ref.read(sortOrderProvider.notifier).state =
+                                      current == SortOrder.name
+                                          ? SortOrder.expiryDate
+                                          : SortOrder.name;
+                                },
+                                borderRadius: BorderRadius.circular(4),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 4, vertical: 2),
+                                  child: Text(
+                                    'SORT: ${ref.watch(sortOrderProvider).displayName}',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color: colorScheme.onSurfaceVariant,
+                                          letterSpacing: 0.5,
+                                        ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -266,22 +288,41 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
     );
   }
 
-  Widget _buildLocationChip(BuildContext context) {
+  Widget _buildLocationChip(BuildContext context, List<Medicine> medicines) {
     final colorScheme = Theme.of(context).colorScheme;
-    return FilterChip(
-      avatar: Icon(Icons.location_on_outlined,
-          size: 16, color: colorScheme.onSurfaceVariant),
-      label: const Text('By location'),
-      selected: false,
-      onSelected: (_) {},
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      labelStyle: TextStyle(
-        fontWeight: FontWeight.w500,
-        color: colorScheme.onSurfaceVariant,
-        fontSize: 14,
+    final locations = medicines
+        .map((m) => m.location)
+        .whereType<String>()
+        .where((l) => l.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+        
+    return PopupMenuButton<String>(
+      tooltip: 'Filter by location',
+      onSelected: (loc) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Filtering by $loc (Coming soon)')),
+        );
+      },
+      itemBuilder: (context) => locations.isEmpty 
+          ? [const PopupMenuItem(enabled: false, child: Text('No locations found'))]
+          : locations.map((loc) => PopupMenuItem(value: loc, child: Text(loc))).toList(),
+      child: FilterChip(
+        avatar: Icon(Icons.location_on_outlined,
+            size: 16, color: colorScheme.onSurfaceVariant),
+        label: const Text('By location'),
+        selected: false,
+        onSelected: (_) {}, // Handled by PopupMenuButton
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        labelStyle: TextStyle(
+          fontWeight: FontWeight.w500,
+          color: colorScheme.onSurfaceVariant,
+          fontSize: 14,
+        ),
+        side: BorderSide(color: colorScheme.outline),
+        showCheckmark: false,
       ),
-      side: BorderSide(color: colorScheme.outline),
-      showCheckmark: false,
     );
   }
 
@@ -297,49 +338,56 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       parts.add('$lowStockCount running low');
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: colorScheme.errorContainer,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: colorScheme.error,
-              shape: BoxShape.circle,
+    return InkWell(
+      onTap: () {
+        ref.read(bottomNavProvider.notifier).state = 1;
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.errorContainer,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colorScheme.error, width: 2),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: colorScheme.error,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.warning_rounded, color: Colors.white, size: 28),
             ),
-            child: const Icon(Icons.warning_rounded, color: Colors.white, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$total ${total == 1 ? 'thing needs' : 'things need'} a look',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onErrorContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  parts.join(' · '),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onErrorContainer
-                            .withValues(alpha: 0.8),
-                      ),
-                ),
-              ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$total ${total == 1 ? 'item needs' : 'items need'} attention',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    parts.join(' · '),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onErrorContainer,
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right_rounded,
-              color: colorScheme.onErrorContainer, size: 22),
-        ],
+            Icon(Icons.chevron_right_rounded,
+                color: colorScheme.onErrorContainer, size: 28),
+          ],
+        ),
       ),
     );
   }
@@ -568,11 +616,7 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                     children: [
                                       Text(
                                         _medicine.name,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .headlineSmall
-                                            ?.copyWith(
-                                                fontWeight: FontWeight.w600),
+                                        style: Theme.of(context).textTheme.headlineSmall,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -581,12 +625,8 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                             _medicine.strength!,
                                           _medicine.form.displayName,
                                         ].join(' · '),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                              color:
-                                                  colorScheme.onSurfaceVariant,
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: colorScheme.onSurfaceVariant,
                                             ),
                                       ),
                                       if (_medicine.brand != null) ...[
@@ -694,6 +734,22 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                     label: 'Alert below',
                                     value:
                                         '${_medicine.lowStockThreshold} ${_medicine.unit}',
+                                    isLast: _medicine.frequency == null && _medicine.doseAmount == null,
+                                  ),
+                                if (_medicine.doseAmount != null)
+                                  _buildDetailRow(
+                                    context,
+                                    icon: Icons.medication_outlined,
+                                    label: 'Dose',
+                                    value: '${_medicine.doseAmount} ${_medicine.unit}',
+                                    isLast: _medicine.frequency == null,
+                                  ),
+                                if (_medicine.frequency != null)
+                                  _buildDetailRow(
+                                    context,
+                                    icon: Icons.repeat_rounded,
+                                    label: 'Frequency',
+                                    value: '${_medicine.frequency} times / day',
                                     isLast: true,
                                   ),
                               ],
@@ -996,13 +1052,25 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
   }
 
   void _takeDose() {
-    if (_medicine.quantity <= 0) {
+    final dose = _medicine.doseAmount ?? 1.0;
+    if (_medicine.quantity < dose) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No doses remaining.')),
+        SnackBar(content: Text('Not enough ${_medicine.unit} for a full dose.')),
       );
       return;
     }
-    final updated = _medicine.copyWith(quantity: _medicine.quantity - 1);
+    
+    final newQuantity = (_medicine.quantity - dose).toInt();
+    bool needsRefill = _medicine.needsRefill;
+    if (_medicine.lowStockThreshold != null &&
+        newQuantity <= _medicine.lowStockThreshold!) {
+      needsRefill = true;
+    }
+    
+    final updated = _medicine.copyWith(
+      quantity: newQuantity,
+      needsRefill: needsRefill,
+    );
     ref.read(inventoryProvider.notifier).updateMedicine(updated);
     setState(() => _medicine = updated);
   }

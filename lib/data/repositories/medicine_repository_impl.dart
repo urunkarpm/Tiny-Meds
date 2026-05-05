@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../data/models/enums.dart';
 import '../../domain/entities/medicine.dart';
 import '../database/app_database.dart';
 
@@ -7,6 +8,9 @@ import '../database/app_database.dart';
 abstract class MedicineRepository {
   /// Watch all medicines sorted by expiry date
   Stream<List<Medicine>> watchAllMedicines();
+
+  /// Watch medicines for a specific profile
+  Stream<List<Medicine>> watchMedicinesForProfile(int profileId);
 
   /// Watch medicines filtered by status
   Stream<List<Medicine>> watchMedicinesByStatus(MedicineStatus status);
@@ -31,6 +35,9 @@ abstract class MedicineRepository {
 
   /// Watch low stock medicines
   Stream<List<Medicine>> watchLowStockMedicines();
+
+  /// Clear all data
+  Future<void> clearAllData();
 }
 
 /// Implementation of MedicineRepository using Drift database
@@ -40,8 +47,18 @@ class MedicineRepositoryImpl implements MedicineRepository {
   MedicineRepositoryImpl(this._database);
 
   @override
+  Future<void> clearAllData() async {
+    await _database.clearAllData();
+  }
+
+  @override
   Stream<List<Medicine>> watchAllMedicines() {
     return _database.watchAllMedicines().map(_mapMedicines);
+  }
+
+  @override
+  Stream<List<Medicine>> watchMedicinesForProfile(int profileId) {
+    return _database.watchMedicinesForProfile(profileId).map(_mapMedicines);
   }
 
   @override
@@ -88,6 +105,7 @@ class MedicineRepositoryImpl implements MedicineRepository {
   MedicineInventoryCompanion _toCompanion(Medicine m, {bool forUpdate = false}) {
     return MedicineInventoryCompanion(
       id: m.id != null ? Value(m.id!) : const Value.absent(),
+      profileId: m.profileId != null ? Value(m.profileId!) : const Value.absent(),
       name: Value(m.name),
       brand: m.brand != null ? Value(m.brand) : const Value.absent(),
       form: Value(m.form),
@@ -100,6 +118,9 @@ class MedicineRepositoryImpl implements MedicineRepository {
       lowStockThreshold: m.lowStockThreshold != null
           ? Value(m.lowStockThreshold)
           : const Value.absent(),
+      frequency: m.frequency != null ? Value(m.frequency) : const Value.absent(),
+      doseAmount: m.doseAmount != null ? Value(m.doseAmount) : const Value.absent(),
+      needsRefill: Value(m.needsRefill),
       isDisposed: Value(m.isDisposed),
       createdAt: forUpdate ? const Value.absent() : Value(m.createdAt),
       updatedAt: Value(DateTime.now()),
@@ -114,6 +135,7 @@ class MedicineRepositoryImpl implements MedicineRepository {
   Medicine _mapMedicine(MedicineInventoryData item) {
     return Medicine(
       id: item.id,
+      profileId: item.profileId,
       name: item.name,
       brand: item.brand,
       form: item.form,
@@ -124,6 +146,9 @@ class MedicineRepositoryImpl implements MedicineRepository {
       openedDate: item.openedDate,
       location: item.location,
       lowStockThreshold: item.lowStockThreshold,
+      frequency: item.frequency,
+      doseAmount: item.doseAmount,
+      needsRefill: item.needsRefill,
       isDisposed: item.isDisposed,
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,

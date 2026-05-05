@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/utils/date_utils.dart' as app_date_utils;
 import '../../../data/models/enums.dart';
 import '../../../domain/entities/medicine.dart';
 import '../../../domain/entities/alert.dart';
 import '../../providers/inventory_provider.dart';
+import '../inventory/widgets/add_medicine_bottom_sheet.dart';
+import '../../widgets/profile_switcher.dart';
 
 /// Alerts screen — expiry, low stock, dose alerts
 /// Design spec: 06-Alerts
@@ -45,9 +46,9 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                 children: [
                   Row(
                     children: [
-                      const Spacer(),
-                      Semantics(
-                        label: 'Search alerts',
+                        const ProfileSwitcher(),
+                        const Spacer(),
+                        Semantics(                        label: 'Search alerts',
                         child: IconButton(
                           icon: const Icon(Icons.search_rounded),
                           onPressed: () {},
@@ -71,10 +72,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                       children: [
                         Text(
                           'Alerts',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.w600),
+                          style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 4),
                         _buildSummaryText(expiredAsync, lowStockAsync, upcomingAsync),
@@ -185,7 +183,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
             final filteredUp = upItems.where((a) {
               if (_selectedFilter == 'all') return true;
               if (_selectedFilter == 'expiry' && a.type == AlertType.expiry) return true;
-              if (_selectedFilter == 'doses' && a.type == AlertType.doseReminder) return true;
+              if (_selectedFilter == 'doses' && a.type == AlertType.dose) return true;
               return false;
             }).toList();
 
@@ -308,39 +306,40 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
         border: Border(
             left: BorderSide(color: colorScheme.error, width: 4)),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: colorScheme.errorContainer,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(Icons.warning_rounded,
-                    color: colorScheme.error, size: 22),
+                    color: colorScheme.error, size: 18),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${medicine.name} expired',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       'Expired ${DateFormat('MMM d').format(medicine.expiryDate)}${medicine.location != null ? ' · ${medicine.location}' : ''}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
                           ),
                     ),
                   ],
@@ -348,23 +347,28 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const SizedBox(width: 52),
+              const SizedBox(width: 42),
               FilledButton(
                 onPressed: () => ref.read(inventoryProvider.notifier).markAsDisposed(medicine.id!),
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.error,
                   foregroundColor: colorScheme.onError,
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  minimumSize: const Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                 ),
                 child: const Text('Toss & remove'),
               ),
               const SizedBox(width: 8),
               TextButton(
                 onPressed: () {},
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 32),
+                  textStyle: const TextStyle(fontSize: 12),
+                ),
                 child: const Text('Snooze'),
               ),
             ],
@@ -383,39 +387,40 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
         border: const Border(
             left: BorderSide(color: _expireSoon, width: 4)),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 32,
+                height: 32,
                 decoration: BoxDecoration(
                   color: _expireSoon.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.inventory_2_rounded,
-                    color: _expireSoon, size: 22),
+                    color: _expireSoon, size: 18),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       '${medicine.name} running low',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Text(
                       '${medicine.quantity} ${medicine.unit} left${medicine.location != null ? ' · ${medicine.location}' : ''}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
+                            fontSize: 11,
                           ),
                     ),
                   ],
@@ -423,26 +428,52 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             children: [
-              const SizedBox(width: 52),
+              const SizedBox(width: 42),
               FilledButton(
-                onPressed: () {},
+                onPressed: () {
+                  ref.read(inventoryProvider.notifier).toggleNeedsRefill(medicine.id!, true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Added ${medicine.name} to shopping list'),
+                      action: SnackBarAction(
+                        label: 'OPEN',
+                        onPressed: () {
+                          ref.read(bottomNavProvider.notifier).state = 2;
+                        },
+                      ),
+                    ),
+                  );
+                },
                 style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 36),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  minimumSize: const Size(0, 32),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                 ),
-                child: const Text('Add to shopping'),
+                child: Text(medicine.needsRefill ? 'In shopping list' : 'Add to shopping'),
               ),
               const SizedBox(width: 8),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  ref.read(inventoryProvider.notifier).toggleNeedsRefill(medicine.id!, false);
+                  // For "Mark refilled", we also want to show the edit sheet to update quantity
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    useSafeArea: true,
+                    builder: (_) => AddMedicineBottomSheet(medicine: medicine),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 32),
+                  textStyle: const TextStyle(fontSize: 12),
+                ),
                 child: const Text('Mark refilled'),
               ),
             ],
-          ),
-        ],
+          ),        ],
       ),
     );
   }
@@ -460,7 +491,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
         title = 'Medicine expires soon';
         subtitle = 'In ${alert.triggerDate.difference(DateTime.now()).inDays} days · ${DateFormat('MMM d').format(alert.triggerDate)}';
         break;
-      case AlertType.doseReminder:
+      case AlertType.dose:
         icon = Icons.notifications_rounded;
         title = 'Dose reminder';
         subtitle = alert.recurrence?.displayName ?? 'One-time';
@@ -473,7 +504,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
@@ -481,32 +512,33 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+            child: Icon(icon, size: 18, color: colorScheme.onSurfaceVariant),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 1),
                 Text(
                   subtitle,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
+                        fontSize: 11,
                       ),
                 ),
               ],
@@ -514,8 +546,9 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
           ),
           Text(
             DateFormat('E').format(alert.triggerDate),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
+                  fontSize: 11,
                 ),
           ),
         ],

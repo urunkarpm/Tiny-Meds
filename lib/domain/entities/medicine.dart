@@ -3,6 +3,7 @@ import '../../data/models/enums.dart';
 /// Domain entity representing a medicine in the home inventory
 class Medicine {
   final int? id;
+  final int? profileId;
   final String name;
   final String? brand;
   final MedicineForm form;
@@ -13,12 +14,16 @@ class Medicine {
   final DateTime? openedDate;
   final String? location;
   final int? lowStockThreshold;
+  final int? frequency;
+  final double? doseAmount;
+  final bool needsRefill;
   final bool isDisposed;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   const Medicine({
     this.id,
+    this.profileId,
     required this.name,
     this.brand,
     required this.form,
@@ -29,6 +34,9 @@ class Medicine {
     this.openedDate,
     this.location,
     this.lowStockThreshold,
+    this.frequency,
+    this.doseAmount,
+    this.needsRefill = false,
     this.isDisposed = false,
     required this.createdAt,
     required this.updatedAt,
@@ -119,6 +127,7 @@ class Medicine {
   /// Create a copy with updated fields
   Medicine copyWith({
     int? id,
+    int? profileId,
     String? name,
     String? brand,
     MedicineForm? form,
@@ -129,12 +138,16 @@ class Medicine {
     DateTime? openedDate,
     String? location,
     int? lowStockThreshold,
+    int? frequency,
+    double? doseAmount,
+    bool? needsRefill,
     bool? isDisposed,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
     return Medicine(
       id: id ?? this.id,
+      profileId: profileId ?? this.profileId,
       name: name ?? this.name,
       brand: brand ?? this.brand,
       form: form ?? this.form,
@@ -145,6 +158,9 @@ class Medicine {
       openedDate: openedDate ?? this.openedDate,
       location: location ?? this.location,
       lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
+      frequency: frequency ?? this.frequency,
+      doseAmount: doseAmount ?? this.doseAmount,
+      needsRefill: needsRefill ?? this.needsRefill,
       isDisposed: isDisposed ?? this.isDisposed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -157,6 +173,7 @@ class Medicine {
       other is Medicine &&
           runtimeType == other.runtimeType &&
           id == other.id &&
+          profileId == other.profileId &&
           name == other.name &&
           brand == other.brand &&
           form == other.form &&
@@ -167,6 +184,9 @@ class Medicine {
           openedDate == other.openedDate &&
           location == other.location &&
           lowStockThreshold == other.lowStockThreshold &&
+          frequency == other.frequency &&
+          doseAmount == other.doseAmount &&
+          needsRefill == other.needsRefill &&
           isDisposed == other.isDisposed &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
@@ -174,6 +194,7 @@ class Medicine {
   @override
   int get hashCode {
     return id.hashCode ^
+        profileId.hashCode ^
         name.hashCode ^
         brand.hashCode ^
         form.hashCode ^
@@ -184,6 +205,9 @@ class Medicine {
         openedDate.hashCode ^
         location.hashCode ^
         lowStockThreshold.hashCode ^
+        frequency.hashCode ^
+        doseAmount.hashCode ^
+        needsRefill.hashCode ^
         isDisposed.hashCode ^
         createdAt.hashCode ^
         updatedAt.hashCode;

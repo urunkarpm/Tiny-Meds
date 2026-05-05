@@ -12,13 +12,13 @@ class Alerts extends Table {
   IntColumn get medicineId => integer().references(MedicineInventory, #id)();
 
   /// Alert type: expiry, low_stock, dose_reminder
-  TextColumn get type => text().map(AlertTypeConverter())();
+  TextColumn get type => text().map(const AlertTypeConverter())();
 
   /// Trigger date/time for the alert
   DateTimeColumn get triggerDate => dateTime()();
 
   /// Recurrence pattern: none, daily, weekly, custom
-  TextColumn get recurrence => text().map(RecurrencePatternConverter()).nullable()();
+  TextColumn get recurrence => text().map(const RecurrencePatternConverter()).nullable()();
 
   /// Whether the alert is active
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();

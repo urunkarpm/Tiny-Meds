@@ -3,6 +3,275 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
+class $ProfilesTable extends Profiles
+    with TableInfo<$ProfilesTable, ProfileData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _colorValueMeta =
+      const VerificationMeta('colorValue');
+  @override
+  late final GeneratedColumn<int> colorValue = GeneratedColumn<int>(
+      'color_value', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, colorValue, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'profiles';
+  @override
+  VerificationContext validateIntegrity(Insertable<ProfileData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color_value')) {
+      context.handle(
+          _colorValueMeta,
+          colorValue.isAcceptableOrUnknown(
+              data['color_value']!, _colorValueMeta));
+    } else if (isInserting) {
+      context.missing(_colorValueMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ProfileData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ProfileData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      colorValue: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}color_value'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $ProfilesTable createAlias(String alias) {
+    return $ProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class ProfileData extends DataClass implements Insertable<ProfileData> {
+  /// Primary key, auto-increment
+  final int id;
+
+  /// Profile name (e.g., "Son", "Mother")
+  final String name;
+
+  /// Color value for UI representation (ARGB)
+  final int colorValue;
+
+  /// Creation timestamp
+  final DateTime createdAt;
+  const ProfileData(
+      {required this.id,
+      required this.name,
+      required this.colorValue,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['color_value'] = Variable<int>(colorValue);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ProfilesCompanion toCompanion(bool nullToAbsent) {
+    return ProfilesCompanion(
+      id: Value(id),
+      name: Value(name),
+      colorValue: Value(colorValue),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ProfileData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ProfileData(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      colorValue: serializer.fromJson<int>(json['colorValue']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'colorValue': serializer.toJson<int>(colorValue),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ProfileData copyWith(
+          {int? id, String? name, int? colorValue, DateTime? createdAt}) =>
+      ProfileData(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        colorValue: colorValue ?? this.colorValue,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  ProfileData copyWithCompanion(ProfilesCompanion data) {
+    return ProfileData(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      colorValue:
+          data.colorValue.present ? data.colorValue.value : this.colorValue,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfileData(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('colorValue: $colorValue, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, colorValue, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ProfileData &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.colorValue == this.colorValue &&
+          other.createdAt == this.createdAt);
+}
+
+class ProfilesCompanion extends UpdateCompanion<ProfileData> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> colorValue;
+  final Value<DateTime> createdAt;
+  const ProfilesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.colorValue = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  ProfilesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required int colorValue,
+    this.createdAt = const Value.absent(),
+  })  : name = Value(name),
+        colorValue = Value(colorValue);
+  static Insertable<ProfileData> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? colorValue,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (colorValue != null) 'color_value': colorValue,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  ProfilesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<int>? colorValue,
+      Value<DateTime>? createdAt}) {
+    return ProfilesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      colorValue: colorValue ?? this.colorValue,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (colorValue.present) {
+      map['color_value'] = Variable<int>(colorValue.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('colorValue: $colorValue, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $MedicineInventoryTable extends MedicineInventory
     with TableInfo<$MedicineInventoryTable, MedicineInventoryData> {
   @override
@@ -89,6 +358,37 @@ class $MedicineInventoryTable extends MedicineInventory
   late final GeneratedColumn<int> lowStockThreshold = GeneratedColumn<int>(
       'low_stock_threshold', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _frequencyMeta =
+      const VerificationMeta('frequency');
+  @override
+  late final GeneratedColumn<int> frequency = GeneratedColumn<int>(
+      'frequency', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _doseAmountMeta =
+      const VerificationMeta('doseAmount');
+  @override
+  late final GeneratedColumn<double> doseAmount = GeneratedColumn<double>(
+      'dose_amount', aliasedName, true,
+      type: DriftSqlType.double, requiredDuringInsert: false);
+  static const VerificationMeta _profileIdMeta =
+      const VerificationMeta('profileId');
+  @override
+  late final GeneratedColumn<int> profileId = GeneratedColumn<int>(
+      'profile_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES profiles (id)'));
+  static const VerificationMeta _needsRefillMeta =
+      const VerificationMeta('needsRefill');
+  @override
+  late final GeneratedColumn<bool> needsRefill = GeneratedColumn<bool>(
+      'needs_refill', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("needs_refill" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _isDisposedMeta =
       const VerificationMeta('isDisposed');
   @override
@@ -128,6 +428,10 @@ class $MedicineInventoryTable extends MedicineInventory
         openedDate,
         location,
         lowStockThreshold,
+        frequency,
+        doseAmount,
+        profileId,
+        needsRefill,
         isDisposed,
         createdAt,
         updatedAt
@@ -196,6 +500,26 @@ class $MedicineInventoryTable extends MedicineInventory
           lowStockThreshold.isAcceptableOrUnknown(
               data['low_stock_threshold']!, _lowStockThresholdMeta));
     }
+    if (data.containsKey('frequency')) {
+      context.handle(_frequencyMeta,
+          frequency.isAcceptableOrUnknown(data['frequency']!, _frequencyMeta));
+    }
+    if (data.containsKey('dose_amount')) {
+      context.handle(
+          _doseAmountMeta,
+          doseAmount.isAcceptableOrUnknown(
+              data['dose_amount']!, _doseAmountMeta));
+    }
+    if (data.containsKey('profile_id')) {
+      context.handle(_profileIdMeta,
+          profileId.isAcceptableOrUnknown(data['profile_id']!, _profileIdMeta));
+    }
+    if (data.containsKey('needs_refill')) {
+      context.handle(
+          _needsRefillMeta,
+          needsRefill.isAcceptableOrUnknown(
+              data['needs_refill']!, _needsRefillMeta));
+    }
     if (data.containsKey('is_disposed')) {
       context.handle(
           _isDisposedMeta,
@@ -242,6 +566,14 @@ class $MedicineInventoryTable extends MedicineInventory
           .read(DriftSqlType.string, data['${effectivePrefix}location']),
       lowStockThreshold: attachedDatabase.typeMapping.read(
           DriftSqlType.int, data['${effectivePrefix}low_stock_threshold']),
+      frequency: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}frequency']),
+      doseAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}dose_amount']),
+      profileId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}profile_id']),
+      needsRefill: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}needs_refill'])!,
       isDisposed: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_disposed'])!,
       createdAt: attachedDatabase.typeMapping
@@ -257,7 +589,7 @@ class $MedicineInventoryTable extends MedicineInventory
   }
 
   static TypeConverter<MedicineForm, String> $converterform =
-      MedicineFormConverter();
+      const MedicineFormConverter();
 }
 
 class MedicineInventoryData extends DataClass
@@ -295,6 +627,18 @@ class MedicineInventoryData extends DataClass
   /// Low stock threshold for alerts (optional)
   final int? lowStockThreshold;
 
+  /// How many times per day to take this medicine
+  final int? frequency;
+
+  /// Amount per dose
+  final double? doseAmount;
+
+  /// Profile association (required for organization)
+  final int? profileId;
+
+  /// Whether the item needs a refill (shopping list)
+  final bool needsRefill;
+
   /// Whether the item has been disposed
   final bool isDisposed;
 
@@ -315,6 +659,10 @@ class MedicineInventoryData extends DataClass
       this.openedDate,
       this.location,
       this.lowStockThreshold,
+      this.frequency,
+      this.doseAmount,
+      this.profileId,
+      required this.needsRefill,
       required this.isDisposed,
       required this.createdAt,
       required this.updatedAt});
@@ -345,6 +693,16 @@ class MedicineInventoryData extends DataClass
     if (!nullToAbsent || lowStockThreshold != null) {
       map['low_stock_threshold'] = Variable<int>(lowStockThreshold);
     }
+    if (!nullToAbsent || frequency != null) {
+      map['frequency'] = Variable<int>(frequency);
+    }
+    if (!nullToAbsent || doseAmount != null) {
+      map['dose_amount'] = Variable<double>(doseAmount);
+    }
+    if (!nullToAbsent || profileId != null) {
+      map['profile_id'] = Variable<int>(profileId);
+    }
+    map['needs_refill'] = Variable<bool>(needsRefill);
     map['is_disposed'] = Variable<bool>(isDisposed);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -373,6 +731,16 @@ class MedicineInventoryData extends DataClass
       lowStockThreshold: lowStockThreshold == null && nullToAbsent
           ? const Value.absent()
           : Value(lowStockThreshold),
+      frequency: frequency == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frequency),
+      doseAmount: doseAmount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(doseAmount),
+      profileId: profileId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(profileId),
+      needsRefill: Value(needsRefill),
       isDisposed: Value(isDisposed),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -394,6 +762,10 @@ class MedicineInventoryData extends DataClass
       openedDate: serializer.fromJson<DateTime?>(json['openedDate']),
       location: serializer.fromJson<String?>(json['location']),
       lowStockThreshold: serializer.fromJson<int?>(json['lowStockThreshold']),
+      frequency: serializer.fromJson<int?>(json['frequency']),
+      doseAmount: serializer.fromJson<double?>(json['doseAmount']),
+      profileId: serializer.fromJson<int?>(json['profileId']),
+      needsRefill: serializer.fromJson<bool>(json['needsRefill']),
       isDisposed: serializer.fromJson<bool>(json['isDisposed']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -414,6 +786,10 @@ class MedicineInventoryData extends DataClass
       'openedDate': serializer.toJson<DateTime?>(openedDate),
       'location': serializer.toJson<String?>(location),
       'lowStockThreshold': serializer.toJson<int?>(lowStockThreshold),
+      'frequency': serializer.toJson<int?>(frequency),
+      'doseAmount': serializer.toJson<double?>(doseAmount),
+      'profileId': serializer.toJson<int?>(profileId),
+      'needsRefill': serializer.toJson<bool>(needsRefill),
       'isDisposed': serializer.toJson<bool>(isDisposed),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -432,6 +808,10 @@ class MedicineInventoryData extends DataClass
           Value<DateTime?> openedDate = const Value.absent(),
           Value<String?> location = const Value.absent(),
           Value<int?> lowStockThreshold = const Value.absent(),
+          Value<int?> frequency = const Value.absent(),
+          Value<double?> doseAmount = const Value.absent(),
+          Value<int?> profileId = const Value.absent(),
+          bool? needsRefill,
           bool? isDisposed,
           DateTime? createdAt,
           DateTime? updatedAt}) =>
@@ -449,6 +829,10 @@ class MedicineInventoryData extends DataClass
         lowStockThreshold: lowStockThreshold.present
             ? lowStockThreshold.value
             : this.lowStockThreshold,
+        frequency: frequency.present ? frequency.value : this.frequency,
+        doseAmount: doseAmount.present ? doseAmount.value : this.doseAmount,
+        profileId: profileId.present ? profileId.value : this.profileId,
+        needsRefill: needsRefill ?? this.needsRefill,
         isDisposed: isDisposed ?? this.isDisposed,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -470,6 +854,12 @@ class MedicineInventoryData extends DataClass
       lowStockThreshold: data.lowStockThreshold.present
           ? data.lowStockThreshold.value
           : this.lowStockThreshold,
+      frequency: data.frequency.present ? data.frequency.value : this.frequency,
+      doseAmount:
+          data.doseAmount.present ? data.doseAmount.value : this.doseAmount,
+      profileId: data.profileId.present ? data.profileId.value : this.profileId,
+      needsRefill:
+          data.needsRefill.present ? data.needsRefill.value : this.needsRefill,
       isDisposed:
           data.isDisposed.present ? data.isDisposed.value : this.isDisposed,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -491,6 +881,10 @@ class MedicineInventoryData extends DataClass
           ..write('openedDate: $openedDate, ')
           ..write('location: $location, ')
           ..write('lowStockThreshold: $lowStockThreshold, ')
+          ..write('frequency: $frequency, ')
+          ..write('doseAmount: $doseAmount, ')
+          ..write('profileId: $profileId, ')
+          ..write('needsRefill: $needsRefill, ')
           ..write('isDisposed: $isDisposed, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -511,6 +905,10 @@ class MedicineInventoryData extends DataClass
       openedDate,
       location,
       lowStockThreshold,
+      frequency,
+      doseAmount,
+      profileId,
+      needsRefill,
       isDisposed,
       createdAt,
       updatedAt);
@@ -529,6 +927,10 @@ class MedicineInventoryData extends DataClass
           other.openedDate == this.openedDate &&
           other.location == this.location &&
           other.lowStockThreshold == this.lowStockThreshold &&
+          other.frequency == this.frequency &&
+          other.doseAmount == this.doseAmount &&
+          other.profileId == this.profileId &&
+          other.needsRefill == this.needsRefill &&
           other.isDisposed == this.isDisposed &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -547,6 +949,10 @@ class MedicineInventoryCompanion
   final Value<DateTime?> openedDate;
   final Value<String?> location;
   final Value<int?> lowStockThreshold;
+  final Value<int?> frequency;
+  final Value<double?> doseAmount;
+  final Value<int?> profileId;
+  final Value<bool> needsRefill;
   final Value<bool> isDisposed;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -562,6 +968,10 @@ class MedicineInventoryCompanion
     this.openedDate = const Value.absent(),
     this.location = const Value.absent(),
     this.lowStockThreshold = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.doseAmount = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.needsRefill = const Value.absent(),
     this.isDisposed = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -578,6 +988,10 @@ class MedicineInventoryCompanion
     this.openedDate = const Value.absent(),
     this.location = const Value.absent(),
     this.lowStockThreshold = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.doseAmount = const Value.absent(),
+    this.profileId = const Value.absent(),
+    this.needsRefill = const Value.absent(),
     this.isDisposed = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -598,6 +1012,10 @@ class MedicineInventoryCompanion
     Expression<DateTime>? openedDate,
     Expression<String>? location,
     Expression<int>? lowStockThreshold,
+    Expression<int>? frequency,
+    Expression<double>? doseAmount,
+    Expression<int>? profileId,
+    Expression<bool>? needsRefill,
     Expression<bool>? isDisposed,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -614,6 +1032,10 @@ class MedicineInventoryCompanion
       if (openedDate != null) 'opened_date': openedDate,
       if (location != null) 'location': location,
       if (lowStockThreshold != null) 'low_stock_threshold': lowStockThreshold,
+      if (frequency != null) 'frequency': frequency,
+      if (doseAmount != null) 'dose_amount': doseAmount,
+      if (profileId != null) 'profile_id': profileId,
+      if (needsRefill != null) 'needs_refill': needsRefill,
       if (isDisposed != null) 'is_disposed': isDisposed,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -632,6 +1054,10 @@ class MedicineInventoryCompanion
       Value<DateTime?>? openedDate,
       Value<String?>? location,
       Value<int?>? lowStockThreshold,
+      Value<int?>? frequency,
+      Value<double?>? doseAmount,
+      Value<int?>? profileId,
+      Value<bool>? needsRefill,
       Value<bool>? isDisposed,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt}) {
@@ -647,6 +1073,10 @@ class MedicineInventoryCompanion
       openedDate: openedDate ?? this.openedDate,
       location: location ?? this.location,
       lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
+      frequency: frequency ?? this.frequency,
+      doseAmount: doseAmount ?? this.doseAmount,
+      profileId: profileId ?? this.profileId,
+      needsRefill: needsRefill ?? this.needsRefill,
       isDisposed: isDisposed ?? this.isDisposed,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -690,6 +1120,18 @@ class MedicineInventoryCompanion
     if (lowStockThreshold.present) {
       map['low_stock_threshold'] = Variable<int>(lowStockThreshold.value);
     }
+    if (frequency.present) {
+      map['frequency'] = Variable<int>(frequency.value);
+    }
+    if (doseAmount.present) {
+      map['dose_amount'] = Variable<double>(doseAmount.value);
+    }
+    if (profileId.present) {
+      map['profile_id'] = Variable<int>(profileId.value);
+    }
+    if (needsRefill.present) {
+      map['needs_refill'] = Variable<bool>(needsRefill.value);
+    }
     if (isDisposed.present) {
       map['is_disposed'] = Variable<bool>(isDisposed.value);
     }
@@ -716,6 +1158,10 @@ class MedicineInventoryCompanion
           ..write('openedDate: $openedDate, ')
           ..write('location: $location, ')
           ..write('lowStockThreshold: $lowStockThreshold, ')
+          ..write('frequency: $frequency, ')
+          ..write('doseAmount: $doseAmount, ')
+          ..write('profileId: $profileId, ')
+          ..write('needsRefill: $needsRefill, ')
           ..write('isDisposed: $isDisposed, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -876,9 +1322,10 @@ class $AlertsTable extends Alerts with TableInfo<$AlertsTable, AlertData> {
     return $AlertsTable(attachedDatabase, alias);
   }
 
-  static TypeConverter<AlertType, String> $convertertype = AlertTypeConverter();
+  static TypeConverter<AlertType, String> $convertertype =
+      const AlertTypeConverter();
   static TypeConverter<RecurrencePattern, String> $converterrecurrence =
-      RecurrencePatternConverter();
+      const RecurrencePatternConverter();
   static TypeConverter<RecurrencePattern?, String?> $converterrecurrencen =
       NullAwareTypeConverter.wrap($converterrecurrence);
 }
@@ -1178,6 +1625,7 @@ class AlertsCompanion extends UpdateCompanion<AlertData> {
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  late final $ProfilesTable profiles = $ProfilesTable(this);
   late final $MedicineInventoryTable medicineInventory =
       $MedicineInventoryTable(this);
   late final $AlertsTable alerts = $AlertsTable(this);
@@ -1186,9 +1634,245 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities =>
-      [medicineInventory, alerts];
+      [profiles, medicineInventory, alerts];
 }
 
+typedef $$ProfilesTableCreateCompanionBuilder = ProfilesCompanion Function({
+  Value<int> id,
+  required String name,
+  required int colorValue,
+  Value<DateTime> createdAt,
+});
+typedef $$ProfilesTableUpdateCompanionBuilder = ProfilesCompanion Function({
+  Value<int> id,
+  Value<String> name,
+  Value<int> colorValue,
+  Value<DateTime> createdAt,
+});
+
+final class $$ProfilesTableReferences
+    extends BaseReferences<_$AppDatabase, $ProfilesTable, ProfileData> {
+  $$ProfilesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$MedicineInventoryTable,
+      List<MedicineInventoryData>> _medicineInventoryRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.medicineInventory,
+          aliasName: $_aliasNameGenerator(
+              db.profiles.id, db.medicineInventory.profileId));
+
+  $$MedicineInventoryTableProcessedTableManager get medicineInventoryRefs {
+    final manager =
+        $$MedicineInventoryTableTableManager($_db, $_db.medicineInventory)
+            .filter((f) => f.profileId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_medicineInventoryRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$ProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $ProfilesTable> {
+  $$ProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get colorValue => $composableBuilder(
+      column: $table.colorValue, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> medicineInventoryRefs(
+      Expression<bool> Function($$MedicineInventoryTableFilterComposer f) f) {
+    final $$MedicineInventoryTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.medicineInventory,
+        getReferencedColumn: (t) => t.profileId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$MedicineInventoryTableFilterComposer(
+              $db: $db,
+              $table: $db.medicineInventory,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$ProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ProfilesTable> {
+  $$ProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get colorValue => $composableBuilder(
+      column: $table.colorValue, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ProfilesTable> {
+  $$ProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get colorValue => $composableBuilder(
+      column: $table.colorValue, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> medicineInventoryRefs<T extends Object>(
+      Expression<T> Function($$MedicineInventoryTableAnnotationComposer a) f) {
+    final $$MedicineInventoryTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.medicineInventory,
+            getReferencedColumn: (t) => t.profileId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$MedicineInventoryTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.medicineInventory,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$ProfilesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ProfilesTable,
+    ProfileData,
+    $$ProfilesTableFilterComposer,
+    $$ProfilesTableOrderingComposer,
+    $$ProfilesTableAnnotationComposer,
+    $$ProfilesTableCreateCompanionBuilder,
+    $$ProfilesTableUpdateCompanionBuilder,
+    (ProfileData, $$ProfilesTableReferences),
+    ProfileData,
+    PrefetchHooks Function({bool medicineInventoryRefs})> {
+  $$ProfilesTableTableManager(_$AppDatabase db, $ProfilesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> colorValue = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              ProfilesCompanion(
+            id: id,
+            name: name,
+            colorValue: colorValue,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            required int colorValue,
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              ProfilesCompanion.insert(
+            id: id,
+            name: name,
+            colorValue: colorValue,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) =>
+                  (e.readTable(table), $$ProfilesTableReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: ({medicineInventoryRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (medicineInventoryRefs) db.medicineInventory
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (medicineInventoryRefs)
+                    await $_getPrefetchedData<ProfileData, $ProfilesTable,
+                            MedicineInventoryData>(
+                        currentTable: table,
+                        referencedTable: $$ProfilesTableReferences
+                            ._medicineInventoryRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ProfilesTableReferences(db, table, p0)
+                                .medicineInventoryRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.profileId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ProfilesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ProfilesTable,
+    ProfileData,
+    $$ProfilesTableFilterComposer,
+    $$ProfilesTableOrderingComposer,
+    $$ProfilesTableAnnotationComposer,
+    $$ProfilesTableCreateCompanionBuilder,
+    $$ProfilesTableUpdateCompanionBuilder,
+    (ProfileData, $$ProfilesTableReferences),
+    ProfileData,
+    PrefetchHooks Function({bool medicineInventoryRefs})>;
 typedef $$MedicineInventoryTableCreateCompanionBuilder
     = MedicineInventoryCompanion Function({
   Value<int> id,
@@ -1202,6 +1886,10 @@ typedef $$MedicineInventoryTableCreateCompanionBuilder
   Value<DateTime?> openedDate,
   Value<String?> location,
   Value<int?> lowStockThreshold,
+  Value<int?> frequency,
+  Value<double?> doseAmount,
+  Value<int?> profileId,
+  Value<bool> needsRefill,
   Value<bool> isDisposed,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -1219,6 +1907,10 @@ typedef $$MedicineInventoryTableUpdateCompanionBuilder
   Value<DateTime?> openedDate,
   Value<String?> location,
   Value<int?> lowStockThreshold,
+  Value<int?> frequency,
+  Value<double?> doseAmount,
+  Value<int?> profileId,
+  Value<bool> needsRefill,
   Value<bool> isDisposed,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
@@ -1228,6 +1920,21 @@ final class $$MedicineInventoryTableReferences extends BaseReferences<
     _$AppDatabase, $MedicineInventoryTable, MedicineInventoryData> {
   $$MedicineInventoryTableReferences(
       super.$_db, super.$_table, super.$_typedResult);
+
+  static $ProfilesTable _profileIdTable(_$AppDatabase db) =>
+      db.profiles.createAlias(
+          $_aliasNameGenerator(db.medicineInventory.profileId, db.profiles.id));
+
+  $$ProfilesTableProcessedTableManager? get profileId {
+    final $_column = $_itemColumn<int>('profile_id');
+    if ($_column == null) return null;
+    final manager = $$ProfilesTableTableManager($_db, $_db.profiles)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_profileIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
 
   static MultiTypedResultKey<$AlertsTable, List<AlertData>> _alertsRefsTable(
           _$AppDatabase db) =>
@@ -1290,6 +1997,15 @@ class $$MedicineInventoryTableFilterComposer
       column: $table.lowStockThreshold,
       builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<int> get frequency => $composableBuilder(
+      column: $table.frequency, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get doseAmount => $composableBuilder(
+      column: $table.doseAmount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get needsRefill => $composableBuilder(
+      column: $table.needsRefill, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<bool> get isDisposed => $composableBuilder(
       column: $table.isDisposed, builder: (column) => ColumnFilters(column));
 
@@ -1298,6 +2014,26 @@ class $$MedicineInventoryTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$ProfilesTableFilterComposer get profileId {
+    final $$ProfilesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.profileId,
+        referencedTable: $db.profiles,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProfilesTableFilterComposer(
+              $db: $db,
+              $table: $db.profiles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<bool> alertsRefs(
       Expression<bool> Function($$AlertsTableFilterComposer f) f) {
@@ -1364,6 +2100,15 @@ class $$MedicineInventoryTableOrderingComposer
       column: $table.lowStockThreshold,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get frequency => $composableBuilder(
+      column: $table.frequency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get doseAmount => $composableBuilder(
+      column: $table.doseAmount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get needsRefill => $composableBuilder(
+      column: $table.needsRefill, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isDisposed => $composableBuilder(
       column: $table.isDisposed, builder: (column) => ColumnOrderings(column));
 
@@ -1372,6 +2117,26 @@ class $$MedicineInventoryTableOrderingComposer
 
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
       column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$ProfilesTableOrderingComposer get profileId {
+    final $$ProfilesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.profileId,
+        referencedTable: $db.profiles,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProfilesTableOrderingComposer(
+              $db: $db,
+              $table: $db.profiles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 }
 
 class $$MedicineInventoryTableAnnotationComposer
@@ -1416,6 +2181,15 @@ class $$MedicineInventoryTableAnnotationComposer
   GeneratedColumn<int> get lowStockThreshold => $composableBuilder(
       column: $table.lowStockThreshold, builder: (column) => column);
 
+  GeneratedColumn<int> get frequency =>
+      $composableBuilder(column: $table.frequency, builder: (column) => column);
+
+  GeneratedColumn<double> get doseAmount => $composableBuilder(
+      column: $table.doseAmount, builder: (column) => column);
+
+  GeneratedColumn<bool> get needsRefill => $composableBuilder(
+      column: $table.needsRefill, builder: (column) => column);
+
   GeneratedColumn<bool> get isDisposed => $composableBuilder(
       column: $table.isDisposed, builder: (column) => column);
 
@@ -1424,6 +2198,26 @@ class $$MedicineInventoryTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$ProfilesTableAnnotationComposer get profileId {
+    final $$ProfilesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.profileId,
+        referencedTable: $db.profiles,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProfilesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.profiles,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
 
   Expression<T> alertsRefs<T extends Object>(
       Expression<T> Function($$AlertsTableAnnotationComposer a) f) {
@@ -1458,7 +2252,7 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
     $$MedicineInventoryTableUpdateCompanionBuilder,
     (MedicineInventoryData, $$MedicineInventoryTableReferences),
     MedicineInventoryData,
-    PrefetchHooks Function({bool alertsRefs})> {
+    PrefetchHooks Function({bool profileId, bool alertsRefs})> {
   $$MedicineInventoryTableTableManager(
       _$AppDatabase db, $MedicineInventoryTable table)
       : super(TableManagerState(
@@ -1483,6 +2277,10 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             Value<DateTime?> openedDate = const Value.absent(),
             Value<String?> location = const Value.absent(),
             Value<int?> lowStockThreshold = const Value.absent(),
+            Value<int?> frequency = const Value.absent(),
+            Value<double?> doseAmount = const Value.absent(),
+            Value<int?> profileId = const Value.absent(),
+            Value<bool> needsRefill = const Value.absent(),
             Value<bool> isDisposed = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
@@ -1499,6 +2297,10 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             openedDate: openedDate,
             location: location,
             lowStockThreshold: lowStockThreshold,
+            frequency: frequency,
+            doseAmount: doseAmount,
+            profileId: profileId,
+            needsRefill: needsRefill,
             isDisposed: isDisposed,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -1515,6 +2317,10 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             Value<DateTime?> openedDate = const Value.absent(),
             Value<String?> location = const Value.absent(),
             Value<int?> lowStockThreshold = const Value.absent(),
+            Value<int?> frequency = const Value.absent(),
+            Value<double?> doseAmount = const Value.absent(),
+            Value<int?> profileId = const Value.absent(),
+            Value<bool> needsRefill = const Value.absent(),
             Value<bool> isDisposed = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
@@ -1531,6 +2337,10 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             openedDate: openedDate,
             location: location,
             lowStockThreshold: lowStockThreshold,
+            frequency: frequency,
+            doseAmount: doseAmount,
+            profileId: profileId,
+            needsRefill: needsRefill,
             isDisposed: isDisposed,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -1541,11 +2351,37 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
                     $$MedicineInventoryTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({alertsRefs = false}) {
+          prefetchHooksCallback: ({profileId = false, alertsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [if (alertsRefs) db.alerts],
-              addJoins: null,
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (profileId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.profileId,
+                    referencedTable:
+                        $$MedicineInventoryTableReferences._profileIdTable(db),
+                    referencedColumn: $$MedicineInventoryTableReferences
+                        ._profileIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
               getPrefetchedDataCallback: (items) async {
                 return [
                   if (alertsRefs)
@@ -1579,7 +2415,7 @@ typedef $$MedicineInventoryTableProcessedTableManager = ProcessedTableManager<
     $$MedicineInventoryTableUpdateCompanionBuilder,
     (MedicineInventoryData, $$MedicineInventoryTableReferences),
     MedicineInventoryData,
-    PrefetchHooks Function({bool alertsRefs})>;
+    PrefetchHooks Function({bool profileId, bool alertsRefs})>;
 typedef $$AlertsTableCreateCompanionBuilder = AlertsCompanion Function({
   Value<int> id,
   required int medicineId,
@@ -1902,6 +2738,8 @@ typedef $$AlertsTableProcessedTableManager = ProcessedTableManager<
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
+  $$ProfilesTableTableManager get profiles =>
+      $$ProfilesTableTableManager(_db, _db.profiles);
   $$MedicineInventoryTableTableManager get medicineInventory =>
       $$MedicineInventoryTableTableManager(_db, _db.medicineInventory);
   $$AlertsTableTableManager get alerts =>

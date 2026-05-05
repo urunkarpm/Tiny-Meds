@@ -12,8 +12,8 @@ class MedTile extends StatelessWidget {
     super.key,
     this.form = 'tablet',
     this.hue = 210,
-    this.size = 56,
-    this.rounded = 14,
+    this.size = 48,
+    this.rounded = 12,
   });
 
   @override

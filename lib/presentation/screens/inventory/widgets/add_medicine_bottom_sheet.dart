@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'scan_medicine_screen.dart';
 import '../../../../domain/entities/medicine.dart';
 import '../../../../data/models/enums.dart';
 import '../../../providers/inventory_provider.dart';
@@ -30,10 +31,12 @@ class _AddMedicineBottomSheetState
   late final TextEditingController _strengthController;
   late final TextEditingController _locationController;
   late final TextEditingController _thresholdController;
+  late final TextEditingController _doseAmountController;
 
   MedicineForm _selectedForm = MedicineForm.tablet;
   String _selectedUnit = 'tablets';
   int _quantity = 1;
+  int _frequency = 1;
   DateTime? _selectedExpiryDate;
   bool _isLoading = false;
 
@@ -51,6 +54,9 @@ class _AddMedicineBottomSheetState
     _locationController = TextEditingController(text: m?.location ?? '');
     _thresholdController =
         TextEditingController(text: m?.lowStockThreshold?.toString() ?? '');
+    _doseAmountController =
+        TextEditingController(text: m?.doseAmount?.toString() ?? '');
+    _frequency = m?.frequency ?? 1;
     _selectedForm = m?.form ?? MedicineForm.tablet;
     _selectedUnit = m?.unit ?? 'tablets';
     _quantity = m?.quantity ?? 1;
@@ -96,18 +102,9 @@ class _AddMedicineBottomSheetState
                     Expanded(
                       child: Text(
                         isEditing ? 'Edit medicine' : 'Add medicine',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
-                    if (_currentStep > 0 || isEditing)
-                      TextButton(
-                        onPressed:
-                            _isLoading ? null : () => _save(skipSteps: true),
-                        child: const Text('Save'),
-                      ),
                   ],
                 ),
               ),
@@ -159,25 +156,25 @@ class _AddMedicineBottomSheetState
 
             // ── Step content ────────────────────────────────────────
             Expanded(
-              child: isEditing
-                  ? SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                      child: Form(
-                        key: _formKey,
+              child: Form(
+                key: _formKey,
+                child: isEditing
+                    ? SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                         child: _buildAllFields(context),
+                      )
+                    : PageView(
+                        controller: _pageController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        onPageChanged: (i) => setState(() => _currentStep = i),
+                        children: [
+                          _StepPage(child: _buildStep1(context)),
+                          _StepPage(child: _buildStep2(context)),
+                          _StepPage(child: _buildStep3(context)),
+                          _StepPage(child: _buildStep4(context)),
+                        ],
                       ),
-                    )
-                  : PageView(
-                      controller: _pageController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (i) => setState(() => _currentStep = i),
-                      children: [
-                        _StepPage(child: _buildStep1(context)),
-                        _StepPage(child: _buildStep2(context)),
-                        _StepPage(child: _buildStep3(context)),
-                        _StepPage(child: _buildStep4(context)),
-                      ],
-                    ),
+              ),
             ),
 
             // ── Footer buttons ──────────────────────────────────────
@@ -191,7 +188,6 @@ class _AddMedicineBottomSheetState
   // ─── Steps ────────────────────────────────────────────────────────────────
 
   Widget _buildStep1(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -260,21 +256,21 @@ class _AddMedicineBottomSheetState
               avatar: Icon(_formIcon(f),
                   size: 16,
                   color: sel
-                      ? colorScheme.onSurface
+                      ? colorScheme.onPrimaryContainer
                       : colorScheme.onSurfaceVariant),
               label: Text(f.displayName),
               selected: sel,
               onSelected: (_) => setState(() => _selectedForm = f),
               shape:
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              selectedColor: colorScheme.surfaceContainerHigh,
+              selectedColor: colorScheme.primaryContainer,
               showCheckmark: false,
               side: sel
                   ? BorderSide.none
                   : BorderSide(color: colorScheme.outline),
               labelStyle: TextStyle(
                 color: sel
-                    ? colorScheme.onSurface
+                    ? colorScheme.onPrimaryContainer
                     : colorScheme.onSurfaceVariant,
                 fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
                 fontSize: 14,
@@ -287,7 +283,70 @@ class _AddMedicineBottomSheetState
         Text('Quantity', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 10),
         _buildQuantityStepper(context),
+        const SizedBox(height: 24),
+        // Dose info
+        Text('Daily Dosage', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              flex: 12,
+              child: _buildOutlinedField(
+                context,
+                controller: _doseAmountController,
+                label: 'Amount per dose',
+                hint: '1',
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 12,
+              child: _buildFrequencyStepper(context),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildFrequencyStepper(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      height: 56,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove_rounded, size: 18),
+            onPressed: _frequency > 1 ? () => setState(() => _frequency--) : null,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('$_frequency',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        )),
+                Text('times/day',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontSize: 10,
+                        )),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_rounded, size: 18),
+            onPressed: () => setState(() => _frequency++),
+          ),
+        ],
+      ),
     );
   }
 
@@ -395,6 +454,12 @@ class _AddMedicineBottomSheetState
               _reviewRow(
                   context, 'Quantity', '$_quantity $_selectedUnit',
                   isLast: false),
+              if (_doseAmountController.text.trim().isNotEmpty)
+                _reviewRow(context, 'Dose',
+                    '${_doseAmountController.text.trim()} every dose',
+                    isLast: false),
+              _reviewRow(context, 'Frequency', '$_frequency times / day',
+                  isLast: false),
               _reviewRow(
                   context,
                   'Expiry',
@@ -462,11 +527,17 @@ class _AddMedicineBottomSheetState
               onSelected: (_) => setState(() => _selectedForm = f),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
-              selectedColor: colorScheme.surfaceContainerHigh,
+              selectedColor: colorScheme.primaryContainer,
               showCheckmark: false,
               side: sel
                   ? BorderSide.none
                   : BorderSide(color: colorScheme.outline),
+              labelStyle: TextStyle(
+                color: sel
+                    ? colorScheme.onPrimaryContainer
+                    : colorScheme.onSurfaceVariant,
+                fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
+              ),
             );
           }).toList(),
         ),
@@ -474,6 +545,28 @@ class _AddMedicineBottomSheetState
         Text('Quantity', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 10),
         _buildQuantityStepper(context),
+        const SizedBox(height: 24),
+        Text('Daily Dosage', style: Theme.of(context).textTheme.titleSmall),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              flex: 12,
+              child: _buildOutlinedField(
+                context,
+                controller: _doseAmountController,
+                label: 'Amount per dose',
+                hint: '1',
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 12,
+              child: _buildFrequencyStepper(context),
+            ),
+          ],
+        ),
         const SizedBox(height: 24),
         InkWell(
           onTap: () => _pickExpiryDate(context),
@@ -532,50 +625,57 @@ class _AddMedicineBottomSheetState
 
   Widget _buildScanCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      decoration: BoxDecoration(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Material(
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(16),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(Icons.camera_alt_rounded,
-                color: colorScheme.onPrimary, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: InkWell(
+          onTap: _startScan,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  'Scan the box',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(Icons.camera_alt_rounded,
+                      color: colorScheme.onPrimary, size: 24),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  "We'll fill in name, strength, expiry",
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.8),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Scan the box',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "We'll fill in name, strength, expiry",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onPrimaryContainer
+                                  .withValues(alpha: 0.8),
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
+                Icon(Icons.chevron_right_rounded,
+                    color: colorScheme.onPrimaryContainer),
               ],
             ),
           ),
-          Icon(Icons.chevron_right_rounded,
-              color: colorScheme.onPrimaryContainer),
-        ],
+        ),
       ),
     );
   }
@@ -641,7 +741,7 @@ class _AddMedicineBottomSheetState
   Widget _buildUnitDropdown(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return DropdownButtonFormField<String>(
-      value: _unitOptions.contains(_selectedUnit) ? _selectedUnit : _unitOptions.first,
+      initialValue: _unitOptions.contains(_selectedUnit) ? _selectedUnit : _unitOptions.first,
       decoration: InputDecoration(
         labelText: 'Unit',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -785,6 +885,7 @@ class _AddMedicineBottomSheetState
         child: Row(
           children: [
             Expanded(
+              flex: 5,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
@@ -794,11 +895,14 @@ class _AddMedicineBottomSheetState
             ),
             const SizedBox(width: 12),
             Expanded(
-              flex: 14,
+              flex: 10,
               child: FilledButton(
-                onPressed: _isLoading ? null : () => _save(),
-                style:
-                    FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+                onPressed: _isLoading ? null : () => _save(skipSteps: true),
+                style: FilledButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                ),
                 child: _isLoading
                     ? const SizedBox(
                         width: 20,
@@ -822,22 +926,26 @@ class _AddMedicineBottomSheetState
       ),
       child: Row(
         children: [
-          if (_currentStep > 0)
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _prevStep,
-                style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 48)),
-                child: const Text('Back'),
-              ),
-            ),
-          if (_currentStep > 0) const SizedBox(width: 12),
           Expanded(
-            flex: 14,
+            flex: 5,
+            child: OutlinedButton(
+              onPressed: _currentStep == 0 ? () => Navigator.pop(context) : _prevStep,
+              style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(0, 48),
+                  foregroundColor: colorScheme.primary),
+              child: Text(_currentStep == 0 ? 'Cancel' : 'Back'),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 10,
             child: FilledButton(
               onPressed: _isLoading ? null : _nextOrSave,
               style: FilledButton.styleFrom(
-                  minimumSize: const Size(0, 48)),
+                minimumSize: const Size(0, 48),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+              ),
               child: _isLoading
                   ? const SizedBox(
                       width: 20,
@@ -945,6 +1053,29 @@ class _AddMedicineBottomSheetState
     if (picked != null) setState(() => _selectedExpiryDate = picked);
   }
 
+  Future<void> _startScan() async {
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(builder: (context) => const ScanMedicineScreen()),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        if (result['name'] != null) _nameController.text = result['name'];
+        if (result['strength'] != null) {
+          _strengthController.text = result['strength'];
+        }
+        if (result['expiryDate'] != null) {
+          _selectedExpiryDate = result['expiryDate'];
+        }
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Scanned details applied.')),
+      );
+    }
+  }
+
   Future<void> _save({bool skipSteps = false}) async {
     if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -956,7 +1087,7 @@ class _AddMedicineBottomSheetState
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select an expiry date.')),
       );
-      if (!skipSteps) {
+      if (!skipSteps && _pageController.hasClients) {
         _pageController.animateToPage(2,
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOutCubic);
@@ -967,8 +1098,20 @@ class _AddMedicineBottomSheetState
     setState(() => _isLoading = true);
 
     try {
+      final threshold = int.tryParse(_thresholdController.text.trim());
+      final doseAmount = double.tryParse(_doseAmountController.text.trim());
+      
+      final m = widget.medicine;
+      bool needsRefill = m?.needsRefill ?? false;
+      
+      // If refilling above threshold, clear the refill flag
+      if (threshold != null && _quantity > threshold) {
+        needsRefill = false;
+      }
+
       final medicine = Medicine(
-        id: widget.medicine?.id,
+        id: m?.id,
+        profileId: m?.profileId,
         name: _nameController.text.trim(),
         brand: _brandController.text.trim().isEmpty
             ? null
@@ -983,12 +1126,16 @@ class _AddMedicineBottomSheetState
         location: _locationController.text.trim().isEmpty
             ? null
             : _locationController.text.trim(),
-        lowStockThreshold: int.tryParse(_thresholdController.text.trim()),
-        createdAt: widget.medicine?.createdAt ?? DateTime.now(),
+        lowStockThreshold: threshold,
+        frequency: _frequency,
+        doseAmount: doseAmount,
+        needsRefill: needsRefill,
+        isDisposed: m?.isDisposed ?? false,
+        createdAt: m?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      if (widget.medicine != null) {
+      if (m != null) {
         await ref.read(inventoryProvider.notifier).updateMedicine(medicine);
       } else {
         await ref.read(inventoryProvider.notifier).addMedicine(medicine);
@@ -998,7 +1145,7 @@ class _AddMedicineBottomSheetState
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.medicine != null
+            content: Text(m != null
                 ? '${medicine.name} updated.'
                 : '${medicine.name} added to cabinet.'),
           ),

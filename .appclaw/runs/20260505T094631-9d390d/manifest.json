@@ -1,0 +1,32 @@
+{
+  "runId": "20260505T094631-9d390d",
+  "flowFile": "C:\\Users\\uprasenjeet\\Documents\\Tiny-Meds\\tests\\smoke_test.yaml",
+  "meta": {
+    "name": "Smoke Test",
+    "platform": "android",
+    "appId": "com.example.tiny_meds"
+  },
+  "startedAt": "2026-05-05T09:46:31.379Z",
+  "finishedAt": "2026-05-05T09:46:34.478Z",
+  "durationMs": 3099,
+  "platform": "android",
+  "success": false,
+  "stepsExecuted": 1,
+  "stepsTotal": 8,
+  "failedAt": 1,
+  "reason": "Could not resolve app name \"Tiny Meds\" to a package (install it or add appId in YAML header + use launchApp)",
+  "steps": [
+    {
+      "index": 0,
+      "kind": "openApp",
+      "verbatim": "open Tiny Meds app",
+      "target": "open Tiny Meds app",
+      "phase": "test",
+      "status": "failed",
+      "durationMs": 3,
+      "error": "Could not resolve app name \"Tiny Meds\" to a package (install it or add appId in YAML header + use launchApp)",
+      "message": "Could not resolve app name \"Tiny Meds\" to a package (install it or add appId in YAML header + use launchApp)",
+      "videoOffsetMs": 1003
+    }
+  ]
+}

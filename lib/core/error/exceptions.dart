@@ -1,40 +1,22 @@
-import 'package:flutter/material.dart';
-
-/// Custom exception types for the application
-abstract class AppException implements Exception {
+/// Base exception class for all app-specific exceptions
+class AppException implements Exception {
   final String message;
-  final String? code;
+  final String code;
 
-  const AppException(this.message, {this.code});
+  const AppException(this.message, {this.code = 'APP_ERROR'});
 
   @override
-  String toString() => code != null ? '$code: $message' : message;
+  String toString() => 'AppException: [$code] $message';
 }
 
-/// Database operation exceptions
+/// Database related exceptions
 class DatabaseException extends AppException {
-  const DatabaseException(super.message, {super.code});
+  const DatabaseException(super.message, {super.code = 'DB_ERROR'});
 }
 
-/// Notification service exceptions
+/// Notification related exceptions
 class NotificationException extends AppException {
-  const NotificationException(super.message, {super.code});
-}
-
-/// Permission denied exceptions
-class PermissionDeniedException extends AppException {
-  const PermissionDeniedException(super.message, {super.code = 'PERMISSION_DENIED'});
-}
-
-/// Validation exceptions for form inputs
-class ValidationException extends AppException {
-  final Map<String, String>? fieldErrors;
-
-  const ValidationException(
-    super.message, {
-    this.fieldErrors,
-    super.code = 'VALIDATION_ERROR',
-  });
+  const NotificationException(super.message, {super.code = 'NOTIFICATION_ERROR'});
 }
 
 /// OCR processing exceptions

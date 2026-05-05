@@ -15,25 +15,51 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: Brightness.light,
-      surface: const Color(0xFFF8F9FA),
-      surfaceContainerHighest: const Color(0xFFF1F3F5),
     ),
-    appBarTheme: AppBarTheme(
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: -0.5),
+      headlineMedium: TextStyle(fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: -0.5),
+      titleLarge: TextStyle(fontWeight: FontWeight.w600, fontSize: 22),
+      titleMedium: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+      bodyLarge: TextStyle(fontSize: 16, height: 1.5),
+      bodyMedium: TextStyle(fontSize: 14, height: 1.5),
+    ),
+    appBarTheme: const AppBarTheme(
       centerTitle: false,
       elevation: 0,
       scrolledUnderElevation: 2,
+      backgroundColor: Color(0xFFF8F9FA),
       surfaceTintColor: Colors.transparent,
-      titleTextStyle: const TextStyle(
+      titleTextStyle: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        height: 1.3,
+        color: Color(0xFF1B1B1F),
       ),
+    ),
+    navigationBarTheme: NavigationBarThemeData(
+      labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      height: 80,
+      indicatorColor: const Color(0xFFD3E4FF),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(size: 24, color: Color(0xFF001D3E));
+        }
+        return const IconThemeData(size: 24, color: Color(0xFF44474E));
+      }),
+      labelTextStyle: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF001D3E));
+        }
+        return const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF44474E));
+      }),
     ),
     cardTheme: CardThemeData(
       elevation: 0,
+      color: Colors.white,
       shadowColor: Colors.black.withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
@@ -104,14 +130,13 @@ class AppTheme {
       seedColor: seedColor,
       brightness: Brightness.dark,
       surface: const Color(0xFF121212),
-      surfaceContainerHighest: const Color(0xFF2C2C2C),
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       centerTitle: false,
       elevation: 0,
       scrolledUnderElevation: 2,
       surfaceTintColor: Colors.transparent,
-      titleTextStyle: const TextStyle(
+      titleTextStyle: TextStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
         height: 1.3,

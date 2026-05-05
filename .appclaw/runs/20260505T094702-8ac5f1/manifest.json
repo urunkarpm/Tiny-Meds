@@ -1,0 +1,54 @@
+{
+  "runId": "20260505T094702-8ac5f1",
+  "flowFile": "C:\\Users\\uprasenjeet\\Documents\\Tiny-Meds\\tests\\smoke_test.yaml",
+  "meta": {
+    "name": "Smoke Test",
+    "platform": "android",
+    "appId": "com.example.tiny_meds"
+  },
+  "startedAt": "2026-05-05T09:47:02.740Z",
+  "finishedAt": "2026-05-05T09:47:07.596Z",
+  "durationMs": 4856,
+  "platform": "android",
+  "success": false,
+  "stepsExecuted": 3,
+  "stepsTotal": 8,
+  "failedAt": 3,
+  "reason": "No matching element for \"Profiles\"",
+  "steps": [
+    {
+      "index": 0,
+      "kind": "launchApp",
+      "target": "launchApp",
+      "phase": "test",
+      "status": "passed",
+      "durationMs": 338,
+      "message": "App com.example.tiny_meds activated correctly.",
+      "videoOffsetMs": 991
+    },
+    {
+      "index": 1,
+      "kind": "waitUntil",
+      "verbatim": "wait until \"Cabinet\" is visible",
+      "target": "wait until \"Cabinet\" is visible",
+      "phase": "test",
+      "status": "passed",
+      "durationMs": 511,
+      "message": "\"Cabinet\" appeared on screen",
+      "videoOffsetMs": 1953
+    },
+    {
+      "index": 2,
+      "kind": "tap",
+      "verbatim": "tap Profiles",
+      "target": "tap Profiles",
+      "phase": "test",
+      "status": "failed",
+      "durationMs": 409,
+      "error": "No matching element for \"Profiles\"",
+      "message": "No matching element for \"Profiles\"",
+      "videoOffsetMs": 3003
+    }
+  ],
+  "videoPath": "recording.mp4"
+}

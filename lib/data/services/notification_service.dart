@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -51,50 +52,36 @@ class NotificationService {
 
   /// Create notification channels for different alert types
   Future<void> _createNotificationChannels() async {
-    const androidDetails = AndroidNotificationDetails(
+    const expiryChannel = AndroidNotificationChannel(
       AppConstants.expiryAlertsChannelId,
       'Expiry Alerts',
-      channelDescription: 'Notifications for medicine expiry dates',
+      description: 'Notifications for medicine expiry dates',
       importance: Importance.high,
-      priority: Priority.high,
-      category: AndroidNotificationCategory.Reminder,
-      icon: '@mipmap/ic_launcher',
     );
 
-    const stockChannelDetails = AndroidNotificationDetails(
+    const stockChannel = AndroidNotificationChannel(
       AppConstants.stockAlertsChannelId,
       'Stock Alerts',
-      channelDescription: 'Notifications for low stock warnings',
+      description: 'Notifications for low stock warnings',
       importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      category: AndroidNotificationCategory.Reminder,
-      icon: '@mipmap/ic_launcher',
     );
 
-    const doseChannelDetails = AndroidNotificationDetails(
+    const doseChannel = AndroidNotificationChannel(
       AppConstants.doseRemindersChannelId,
       'Dose Reminders',
-      channelDescription: 'Notifications for dose administration reminders',
+      description: 'Notifications for dose administration reminders',
       importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-      category: AndroidNotificationCategory.Reminder,
-      icon: '@mipmap/ic_launcher',
     );
 
-    await _notifications
+    final androidPlugin = _notifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(androidDetails);
+            AndroidFlutterLocalNotificationsPlugin>();
 
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(stockChannelDetails);
-
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(doseChannelDetails);
+    if (androidPlugin != null) {
+      await androidPlugin.createNotificationChannel(expiryChannel);
+      await androidPlugin.createNotificationChannel(stockChannel);
+      await androidPlugin.createNotificationChannel(doseChannel);
+    }
   }
 
   /// Request notification permissions (Android 13+)
@@ -119,7 +106,7 @@ class NotificationService {
 
     if (androidPlugin != null) {
       final granted = await androidPlugin.canScheduleExactNotifications();
-      return granted;
+      return granted ?? false;
     }
 
     return true;
@@ -134,7 +121,7 @@ class NotificationService {
     String channelId = AppConstants.expiryAlertsChannelId,
   }) async {
     if (!_isInitialized) {
-      throw NotificationException('Notification service not initialized');
+      throw const NotificationException('Notification service not initialized');
     }
 
     final androidDetails = AndroidNotificationDetails(
@@ -147,7 +134,7 @@ class NotificationService {
       priority: channelId == AppConstants.expiryAlertsChannelId
           ? Priority.high
           : Priority.defaultPriority,
-      category: AndroidNotificationCategory.Reminder,
+      category: AndroidNotificationCategory.reminder,
       icon: '@mipmap/ic_launcher',
       fullScreenIntent: channelId == AppConstants.expiryAlertsChannelId,
       actions: [
@@ -198,7 +185,7 @@ class NotificationService {
     String channelId = AppConstants.expiryAlertsChannelId,
   }) async {
     if (!_isInitialized) {
-      throw NotificationException('Notification service not initialized');
+      throw const NotificationException('Notification service not initialized');
     }
 
     final androidDetails = AndroidNotificationDetails(
@@ -211,7 +198,7 @@ class NotificationService {
       priority: channelId == AppConstants.expiryAlertsChannelId
           ? Priority.high
           : Priority.defaultPriority,
-      category: AndroidNotificationCategory.Reminder,
+      category: AndroidNotificationCategory.reminder,
       icon: '@mipmap/ic_launcher',
     );
 
@@ -232,6 +219,58 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  /// Schedule a daily recurring notification
+  Future<void> scheduleDailyNotification({
+    required int id,
+    required String title,
+    required String body,
+    required TimeOfDay time,
+    String? payload,
+    String channelId = AppConstants.doseRemindersChannelId,
+  }) async {
+    if (!_isInitialized) {
+      throw const NotificationException('Notification service not initialized');
+    }
+
+    final androidDetails = AndroidNotificationDetails(
+      channelId,
+      _getChannelName(channelId),
+      channelDescription: _getChannelDescription(channelId),
+      importance: Importance.high,
+      priority: Priority.high,
+    );
+
+    const iosDetails = DarwinNotificationDetails();
+
+    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+
+    final now = tz.TZDateTime.now(tz.local);
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      time.hour,
+      time.minute,
+    );
+
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await _notifications.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduledDate,
+      details,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.time,
     );
   }
 

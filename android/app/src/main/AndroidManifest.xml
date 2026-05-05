@@ -13,7 +13,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     
     <!-- Optional: Camera permission for OCR feature -->
-    <!-- <uses-permission android:name="android.permission.CAMERA"/> -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     
     <application
         android:label="Tiny-Meds"

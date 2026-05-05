@@ -1,34 +1,43 @@
-import 'package:drift/drift.dart';
-
-/// Enum for medicine forms
+/// Enum representing different forms of medicine
 enum MedicineForm {
-  liquid,
   tablet,
   capsule,
+  liquid,
   cream,
   inhaler,
+  injection,
+  drops,
+  patch,
   other,
 }
 
-/// Extension to get display name for medicine form
+/// Extension methods for MedicineForm enum
 extension MedicineFormExtension on MedicineForm {
+  /// Get a human-readable display name
   String get displayName {
     switch (this) {
-      case MedicineForm.liquid:
-        return 'Liquid';
       case MedicineForm.tablet:
         return 'Tablet';
       case MedicineForm.capsule:
         return 'Capsule';
+      case MedicineForm.liquid:
+        return 'Liquid';
       case MedicineForm.cream:
         return 'Cream';
       case MedicineForm.inhaler:
         return 'Inhaler';
+      case MedicineForm.injection:
+        return 'Injection';
+      case MedicineForm.drops:
+        return 'Drops';
+      case MedicineForm.patch:
+        return 'Patch';
       case MedicineForm.other:
         return 'Other';
     }
   }
 
+  /// Create from string (useful for database/API)
   static MedicineForm fromString(String value) {
     return MedicineForm.values.firstWhere(
       (e) => e.name == value.toLowerCase(),
@@ -37,23 +46,24 @@ extension MedicineFormExtension on MedicineForm {
   }
 }
 
-/// Enum for alert types
+/// Type of alert
 enum AlertType {
   expiry,
   lowStock,
-  doseReminder,
+  dose,
 }
 
-/// Extension to get display name for alert type
+/// Extension for AlertType
 extension AlertTypeExtension on AlertType {
+  /// Get display label
   String get displayName {
     switch (this) {
       case AlertType.expiry:
-        return 'Expiry Alert';
+        return 'Expiry';
       case AlertType.lowStock:
-        return 'Low Stock Alert';
-      case AlertType.doseReminder:
-        return 'Dose Reminder';
+        return 'Low Stock';
+      case AlertType.dose:
+        return 'Dose';
     }
   }
 
@@ -65,33 +75,59 @@ extension AlertTypeExtension on AlertType {
   }
 }
 
-/// Enum for recurrence patterns
+/// Recurrence pattern for dose reminders
 enum RecurrencePattern {
-  none,
+  once,
   daily,
   weekly,
-  custom,
+  monthly,
 }
 
-/// Extension to get display name for recurrence pattern
+/// Extension for RecurrencePattern
 extension RecurrencePatternExtension on RecurrencePattern {
   String get displayName {
     switch (this) {
-      case RecurrencePattern.none:
-        return 'One-time';
+      case RecurrencePattern.once:
+        return 'Once';
       case RecurrencePattern.daily:
         return 'Daily';
       case RecurrencePattern.weekly:
         return 'Weekly';
-      case RecurrencePattern.custom:
-        return 'Custom';
+      case RecurrencePattern.monthly:
+        return 'Monthly';
     }
   }
 
   static RecurrencePattern fromString(String value) {
     return RecurrencePattern.values.firstWhere(
       (e) => e.name == value.toLowerCase(),
-      orElse: () => RecurrencePattern.none,
+      orElse: () => RecurrencePattern.once,
     );
+  }
+}
+
+/// Order for sorting medicine list
+enum SortOrder {
+  name,
+  expiryDate,
+}
+
+/// Enum for medicine status filters
+enum MedicineStatus {
+  all,
+  active,
+  expiringSoon,
+  expired,
+  lowStock,
+}
+
+extension SortOrderExtension on SortOrder {
+  String get displayName {
+    switch (this) {
+      case SortOrder.name:
+        return 'NAME';
+      case SortOrder.expiryDate:
+        return 'EXPIRY';
+    }
   }
 }

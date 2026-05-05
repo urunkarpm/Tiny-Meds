@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'core/theme/app_theme.dart';
+import 'data/services/notification_service.dart';
 import 'presentation/screens/onboarding/onboarding_screen.dart';
 
 void main() async {
@@ -15,6 +16,9 @@ void main() async {
   ]);
 
   tz.initializeTimeZones();
+
+  // Initialize notifications
+  await NotificationService().initialize();
 
   runApp(
     const ProviderScope(
@@ -34,6 +38,7 @@ class TinyMedsApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
+      scrollBehavior: const ScrollBehavior().copyWith(overscroll: false),
       home: const OnboardingScreen(),
     );
   }

@@ -31,7 +31,7 @@ class MedicineListItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -39,10 +39,10 @@ class MedicineListItem extends StatelessWidget {
               MedTile(
                 form: medicine.form.name,
                 hue: medicine.medHue,
-                size: 56,
-                rounded: 14,
+                size: 48,
+                rounded: 12,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               // Details
               Expanded(
                 child: Column(
@@ -50,9 +50,7 @@ class MedicineListItem extends StatelessWidget {
                   children: [
                     Text(
                       medicine.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                      style: Theme.of(context).textTheme.titleMedium,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -65,7 +63,7 @@ class MedicineListItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     StatusPill(
                       kind: medicine.statusPillKind,
                       label: medicine.statusPillLabel,

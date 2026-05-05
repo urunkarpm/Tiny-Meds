@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/database/app_database.dart';
 import '../../../data/models/enums.dart';
 import '../../../domain/entities/medicine.dart';
 import '../../providers/inventory_provider.dart';
@@ -144,6 +143,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         _statusChip(context, 'soon', 'Expiring soon',
                             const Color(0xFFFF9800)),
                         _statusChip(context, 'low', 'Low stock', null),
+                        _statusChip(context, 'refill', 'Shopping list', null),
                         _statusChip(context, 'active', 'Active', null),
                       ],
                     ),
@@ -348,7 +348,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return all.where((m) {
       // Status filter
       if (_statusFilters.isNotEmpty) {
-        if (!_statusFilters.contains(m.statusPillKind)) return false;
+        bool match = false;
+        if (_statusFilters.contains('refill') && m.needsRefill) match = true;
+        if (_statusFilters.contains(m.statusPillKind)) match = true;
+        if (!match) return false;
       }
       // Form filter
       if (_formFilters.isNotEmpty && !_formFilters.contains(m.form)) {

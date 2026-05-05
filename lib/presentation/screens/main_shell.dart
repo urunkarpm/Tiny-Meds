@@ -1,40 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'inventory/inventory_screen.dart';
+import 'inventory/shopping_screen.dart';
 import 'alerts/alerts_screen.dart';
 import 'calendar/calendar_screen.dart';
 import 'settings/settings_screen.dart';
+import '../providers/inventory_provider.dart';
 
-/// Main app shell with M3 NavigationBar and 4 tabs:
-/// Cabinet · Alerts · Calendar · Settings
-class MainShell extends StatefulWidget {
+/// Main app shell with M3 NavigationBar and 5 tabs:
+/// Cabinet · Alerts · Shopping · Calendar · Settings
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
-  int _selectedIndex = 0;
-
+class _MainShellState extends ConsumerState<MainShell> {
   static const List<Widget> _screens = [
     InventoryScreen(),
     AlertsScreen(),
+    ShoppingScreen(),
     CalendarScreen(),
     SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = ref.watch(bottomNavProvider);
+
     return Scaffold(
       body: IndexedStack(
-        index: _selectedIndex,
+        index: selectedIndex,
         children: _screens,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedIndex,
+        selectedIndex: selectedIndex,
         onDestinationSelected: (index) {
-          setState(() => _selectedIndex = index);
+          ref.read(bottomNavProvider.notifier).state = index;
         },
         destinations: const [
           NavigationDestination(
@@ -46,6 +50,11 @@ class _MainShellState extends State<MainShell> {
             icon: Icon(Icons.notifications_outlined),
             selectedIcon: Icon(Icons.notifications_rounded),
             label: 'Alerts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.shopping_basket_outlined),
+            selectedIcon: Icon(Icons.shopping_basket_rounded),
+            label: 'Shopping',
           ),
           NavigationDestination(
             icon: Icon(Icons.calendar_today_outlined),

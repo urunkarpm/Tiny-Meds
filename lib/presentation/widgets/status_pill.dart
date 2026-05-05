@@ -19,10 +19,10 @@ class StatusPill extends StatelessWidget {
     final colors = _getColors(colorScheme);
     
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: colors.bg,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -42,7 +42,7 @@ class StatusPill extends StatelessWidget {
               color: colors.fg,
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.2,
+              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -66,25 +66,25 @@ class StatusPill extends StatelessWidget {
         );
       case 'soon':
         return _StatusColors(
-          bg: const Color(0xFFFF9800).withOpacity(0.15),
+          bg: const Color(0xFFFF9800).withValues(alpha: 0.15),
           fg: const Color(0xFFFF9800),
           dot: const Color(0xFFFF9800),
         );
       case 'month':
         return _StatusColors(
-          bg: const Color(0xFFFFA726).withOpacity(0.12),
+          bg: const Color(0xFFFFA726).withValues(alpha: 0.12),
           fg: const Color(0xFFFFA726),
           dot: const Color(0xFFFFA726),
         );
       case 'active':
         return _StatusColors(
-          bg: const Color(0xFF1B873B).withOpacity(0.15),
+          bg: const Color(0xFF1B873B).withValues(alpha: 0.15),
           fg: const Color(0xFF1B873B),
           dot: const Color(0xFF1B873B),
         );
       case 'low':
         return _StatusColors(
-          bg: const Color(0xFFFF9800).withOpacity(0.15),
+          bg: const Color(0xFFFF9800).withValues(alpha: 0.15),
           fg: const Color(0xFFFF9800),
           dot: const Color(0xFFFF9800),
         );

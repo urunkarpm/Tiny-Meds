@@ -1,0 +1,12 @@
+name: Smoke Test
+platform: android
+appId: com.example.tiny_meds
+---
+- launchApp
+- wait 3s
+- tap Primary Profile
+- tap Add Profile
+- type Test User
+- tap Create
+- wait until Test User is visible
+- done

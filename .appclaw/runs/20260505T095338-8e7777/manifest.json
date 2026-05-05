@@ -1,0 +1,54 @@
+{
+  "runId": "20260505T095338-8e7777",
+  "flowFile": "C:\\Users\\uprasenjeet\\Documents\\Tiny-Meds\\tests\\smoke_test.yaml",
+  "meta": {
+    "name": "Smoke Test",
+    "platform": "android",
+    "appId": "com.example.tiny_meds"
+  },
+  "startedAt": "2026-05-05T09:53:38.255Z",
+  "finishedAt": "2026-05-05T09:54:03.093Z",
+  "durationMs": 24838,
+  "platform": "android",
+  "success": false,
+  "stepsExecuted": 3,
+  "stepsTotal": 8,
+  "failedAt": 3,
+  "reason": "No matching element for \"Primary Profile\"",
+  "steps": [
+    {
+      "index": 0,
+      "kind": "launchApp",
+      "target": "launchApp",
+      "phase": "test",
+      "status": "passed",
+      "durationMs": 642,
+      "message": "App com.example.tiny_meds activated correctly.",
+      "videoOffsetMs": 743
+    },
+    {
+      "index": 1,
+      "kind": "wait",
+      "verbatim": "wait 3s",
+      "target": "wait 3s",
+      "phase": "test",
+      "status": "passed",
+      "durationMs": 3007,
+      "message": "Waited 3s",
+      "videoOffsetMs": 2059
+    },
+    {
+      "index": 2,
+      "kind": "tap",
+      "verbatim": "tap Primary Profile",
+      "target": "tap Primary Profile",
+      "phase": "test",
+      "status": "failed",
+      "durationMs": 18550,
+      "error": "No matching element for \"Primary Profile\"",
+      "message": "No matching element for \"Primary Profile\"",
+      "videoOffsetMs": 5628
+    }
+  ],
+  "videoPath": "recording.mp4"
+}
