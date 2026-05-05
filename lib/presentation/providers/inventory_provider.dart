@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database/app_database.dart';
 import '../../domain/entities/medicine.dart';
+import '../../domain/entities/alert.dart';
 import '../providers/repository_providers.dart';
 
 /// Notifier for managing medicine inventory state
@@ -117,4 +118,42 @@ final filteredMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
   } else {
     return notifier.watchAllMedicines();
   }
+});
+
+/// Provider for active alerts
+final activeAlertsProvider = StreamProvider<List<Alert>>((ref) {
+  final repository = ref.watch(alertRepositoryProvider);
+  return repository.watchActiveAlerts();
+});
+
+/// Provider for expired medicines
+final expiredMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
+  final repository = ref.watch(medicineRepositoryProvider);
+  return repository.watchMedicinesByStatus(MedicineStatus.expired);
+});
+
+/// Provider for low stock medicines
+final lowStockMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
+  final repository = ref.watch(medicineRepositoryProvider);
+  return repository.watchLowStockMedicines();
+});
+
+/// Provider for medicine inventory summary (count and oldest date)
+final inventorySummaryProvider = StreamProvider<Map<String, dynamic>>((ref) {
+  final repository = ref.watch(medicineRepositoryProvider);
+  return repository.watchAllMedicines().map((medicines) {
+    if (medicines.isEmpty) {
+      return {'count': 0, 'since': null};
+    }
+    
+    // Find earliest createdAt date
+    final oldest = medicines.reduce((a, b) => 
+      a.createdAt.isBefore(b.createdAt) ? a : b
+    );
+    
+    return {
+      'count': medicines.length,
+      'since': oldest.createdAt,
+    };
+  });
 });

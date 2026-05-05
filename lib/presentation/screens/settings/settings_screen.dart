@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../providers/inventory_provider.dart';
 
 /// Settings screen — app preferences and configuration
 /// Design spec: 08-Settings
@@ -30,7 +33,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
 
             // You card
-            _buildYouCard(context),
+            _buildYouCard(context, ref),
             const SizedBox(height: 24),
 
             // Notifications group
@@ -91,8 +94,9 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildYouCard(BuildContext context) {
+  Widget _buildYouCard(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final summaryAsync = ref.watch(inventorySummaryProvider);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -111,7 +115,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             child: Center(
               child: Text(
-                'P',
+                'Y',
                 style: TextStyle(
                   color: colorScheme.onPrimary,
                   fontSize: 22,
@@ -122,25 +126,36 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 14),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Your cabinet',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '22 medicines · since April 2026',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.8),
-                      ),
-                ),
-              ],
+            child: summaryAsync.when(
+              data: (summary) {
+                final count = summary['count'] as int;
+                final since = summary['since'] as DateTime?;
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your cabinet',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      since != null 
+                        ? '$count medicines · since ${DateFormat('MMMM yyyy').format(since)}'
+                        : 'Empty cabinet',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onPrimaryContainer
+                                .withValues(alpha: 0.8),
+                          ),
+                    ),
+                  ],
+                );
+              },
+              loading: () => const CircularProgressIndicator(),
+              error: (_, __) => const Text('Error loading summary'),
             ),
           ),
           Icon(Icons.chevron_right_rounded,

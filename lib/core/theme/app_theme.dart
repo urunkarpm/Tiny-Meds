@@ -79,7 +79,6 @@ class AppTheme {
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       elevation: 4,
       hoverElevation: 6,
-      pressElevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),
@@ -167,7 +166,6 @@ class AppTheme {
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
       elevation: 4,
       hoverElevation: 6,
-      pressElevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(16)),
       ),

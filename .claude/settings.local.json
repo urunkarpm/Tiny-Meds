@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\uprasenjeet\\\\Documents\\\\Tiny-Meds\\\\android\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\uprasenjeet\\\\Documents\\\\Tiny-Meds\\\\build\\\\app\\\\outputs\\\\flutter-apk\\\\\" | Format-Table Name, @{N='Size\\(MB\\)';E={[math]::Round\\($_.Length/1MB, 1\\)}}, LastWriteTime)",
+      "PowerShell(New-Item *)",
+      "Bash(git fetch *)",
+      "PowerShell(flutter build *)",
+      "Bash(git remote *)",
+      "Bash(git pull *)",
+      "Bash(git checkout *)",
+      "Bash(flutter build *)",
+      "Bash(where flutter *)",
+      "Bash(flutter --version)",
+      "PowerShell(& \"C:\\\\Users\\\\uprasenjeet\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin\\\\flutter.bat\" --version)",
+      "PowerShell(& \"C:\\\\Users\\\\uprasenjeet\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin\\\\flutter.bat\" build apk --debug 2>&1)",
+      "PowerShell(& \"C:\\\\Users\\\\uprasenjeet\\\\.puro\\\\envs\\\\stable\\\\flutter\\\\bin\\\\flutter.bat\" build apk --release 2>&1)",
+      "Bash(gh release *)"
+    ]
+  }
+}

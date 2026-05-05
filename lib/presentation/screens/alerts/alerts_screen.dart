@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+
+import '../../../core/utils/date_utils.dart' as app_date_utils;
+import '../../../data/models/enums.dart';
+import '../../../domain/entities/medicine.dart';
+import '../../../domain/entities/alert.dart';
+import '../../providers/inventory_provider.dart';
 
 /// Alerts screen — expiry, low stock, dose alerts
 /// Design spec: 06-Alerts
-/// Nav bar is provided by MainShell — not rendered here.
 class AlertsScreen extends ConsumerStatefulWidget {
   const AlertsScreen({super.key});
 
@@ -19,6 +25,10 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    
+    final expiredAsync = ref.watch(expiredMedicinesProvider);
+    final lowStockAsync = ref.watch(lowStockMedicinesProvider);
+    final upcomingAsync = ref.watch(activeAlertsProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -67,13 +77,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          '2 today · 3 coming up',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
+                        _buildSummaryText(expiredAsync, lowStockAsync, upcomingAsync),
                       ],
                     ),
                   ),
@@ -103,71 +107,165 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
 
             // ── Alert list ────────────────────────────────────────
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
-                children: [
-                  // TODAY section header
+              child: _buildAlertList(context, expiredAsync, lowStockAsync, upcomingAsync),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryText(
+      AsyncValue<List<Medicine>> expired,
+      AsyncValue<List<Medicine>> lowStock,
+      AsyncValue<List<Alert>> upcoming) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return expired.when(
+      data: (exp) {
+        return lowStock.when(
+          data: (low) {
+            return upcoming.when(
+              data: (up) {
+                final totalToday = exp.length + low.length;
+                final totalUpcoming = up.length;
+                
+                if (totalToday == 0 && totalUpcoming == 0) {
+                  return Text(
+                    'No active alerts',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  );
+                }
+                
+                String text = '';
+                if (totalToday > 0) {
+                  text += '$totalToday today';
+                }
+                if (totalUpcoming > 0) {
+                  if (text.isNotEmpty) text += ' · ';
+                  text += '$totalUpcoming coming up';
+                }
+                
+                return Text(
+                  text,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                );
+              },
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildAlertList(
+      BuildContext context,
+      AsyncValue<List<Medicine>> expired,
+      AsyncValue<List<Medicine>> lowStock,
+      AsyncValue<List<Alert>> upcoming) {
+    
+    return expired.when(
+      data: (expItems) => lowStock.when(
+        data: (lowItems) => upcoming.when(
+          data: (upItems) {
+            final filteredExp = _selectedFilter == 'all' || _selectedFilter == 'expiry' ? expItems : [];
+            final filteredLow = _selectedFilter == 'all' || _selectedFilter == 'low_stock' ? lowItems : [];
+            final filteredUp = upItems.where((a) {
+              if (_selectedFilter == 'all') return true;
+              if (_selectedFilter == 'expiry' && a.type == AlertType.expiry) return true;
+              if (_selectedFilter == 'doses' && a.type == AlertType.doseReminder) return true;
+              return false;
+            }).toList();
+
+            if (filteredExp.isEmpty && filteredLow.isEmpty && filteredUp.isEmpty) {
+              return _buildEmptyState(context);
+            }
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+              children: [
+                if (filteredExp.isNotEmpty || filteredLow.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
                     child: Text(
                       'TODAY',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: colorScheme.error,
+                            color: Theme.of(context).colorScheme.error,
                             letterSpacing: 1,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                   ),
+                  ...filteredExp.map((m) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _buildExpiredCard(context, m),
+                  )),
+                  ...filteredLow.map((m) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _buildLowStockCard(context, m),
+                  )),
+                  const SizedBox(height: 16),
+                ],
 
-                  // Expired alert card
-                  _buildExpiredCard(context),
-                  const SizedBox(height: 8),
-
-                  // Low-stock card
-                  _buildLowStockCard(context),
-                  const SizedBox(height: 24),
-
-                  // UPCOMING section header
+                if (filteredUp.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
                     child: Text(
                       'UPCOMING',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                             letterSpacing: 1,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                   ),
-
-                  _buildUpcomingCard(
-                    context,
-                    icon: Icons.access_time_rounded,
-                    title: 'Amoxicillin expires soon',
-                    subtitle: 'In 4 days · May 7',
-                    when: 'Wed',
-                  ),
-                  const SizedBox(height: 8),
-                  _buildUpcomingCard(
-                    context,
-                    icon: Icons.notifications_rounded,
-                    title: 'Vitamin D3 · daily',
-                    subtitle: 'Every day at 9:00 AM',
-                    when: '9:00',
-                  ),
-                  const SizedBox(height: 8),
-                  _buildUpcomingCard(
-                    context,
-                    icon: Icons.access_time_rounded,
-                    title: 'Ibuprofen expires',
-                    subtitle: 'In 3 weeks · May 24',
-                    when: 'May 24',
-                  ),
+                  ...filteredUp.map((a) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _buildUpcomingCard(context, a),
+                  )),
                 ],
-              ),
-            ),
-          ],
+              ],
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
         ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e')),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.notifications_off_outlined, 
+              size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+          const SizedBox(height: 16),
+          Text(
+            'No alerts found',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -201,7 +299,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     );
   }
 
-  Widget _buildExpiredCard(BuildContext context) {
+  Widget _buildExpiredCard(BuildContext context, Medicine medicine) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
@@ -233,26 +331,20 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Loratadine expired',
+                      '${medicine.name} expired',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Expired Mar 14 · Kitchen drawer',
+                      'Expired ${DateFormat('MMM d').format(medicine.expiryDate)}${medicine.location != null ? ' · ${medicine.location}' : ''}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
                 ),
-              ),
-              Text(
-                '2h ago',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
               ),
             ],
           ),
@@ -261,7 +353,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
             children: [
               const SizedBox(width: 52),
               FilledButton(
-                onPressed: () {},
+                onPressed: () => ref.read(inventoryProvider.notifier).markAsDisposed(medicine.id!),
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.error,
                   foregroundColor: colorScheme.onError,
@@ -282,7 +374,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     );
   }
 
-  Widget _buildLowStockCard(BuildContext context) {
+  Widget _buildLowStockCard(BuildContext context, Medicine medicine) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
@@ -314,26 +406,20 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Cough Syrup running low',
+                      '${medicine.name} running low',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'About 2 doses left · Bathroom',
+                      '${medicine.quantity} ${medicine.unit} left${medicine.location != null ? ' · ${medicine.location}' : ''}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                     ),
                   ],
                 ),
-              ),
-              Text(
-                '5h ago',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
               ),
             ],
           ),
@@ -361,14 +447,31 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     );
   }
 
-  Widget _buildUpcomingCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String when,
-  }) {
+  Widget _buildUpcomingCard(BuildContext context, Alert alert) {
     final colorScheme = Theme.of(context).colorScheme;
+    
+    IconData icon;
+    String title = '';
+    String subtitle = '';
+    
+    switch (alert.type) {
+      case AlertType.expiry:
+        icon = Icons.access_time_rounded;
+        title = 'Medicine expires soon';
+        subtitle = 'In ${alert.triggerDate.difference(DateTime.now()).inDays} days · ${DateFormat('MMM d').format(alert.triggerDate)}';
+        break;
+      case AlertType.doseReminder:
+        icon = Icons.notifications_rounded;
+        title = 'Dose reminder';
+        subtitle = alert.recurrence?.displayName ?? 'One-time';
+        break;
+      case AlertType.lowStock:
+        icon = Icons.inventory_2_rounded;
+        title = 'Low stock alert';
+        subtitle = 'Triggered when quantity low';
+        break;
+    }
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -410,7 +513,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
             ),
           ),
           Text(
-            when,
+            DateFormat('E').format(alert.triggerDate),
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
