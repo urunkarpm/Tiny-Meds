@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/database/app_database.dart';
+import '../../domain/entities/alert.dart';
 import '../../domain/entities/medicine.dart';
 import '../providers/repository_providers.dart';
 
@@ -94,6 +95,16 @@ class InventoryNotifier extends AsyncNotifier<List<Medicine>> {
 final inventoryProvider =
     AsyncNotifierProvider<InventoryNotifier, List<Medicine>>(() {
   return InventoryNotifier();
+});
+
+/// Provider for all medicines (unfiltered, sorted by expiry date)
+final allMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
+  return ref.watch(medicineRepositoryProvider).watchAllMedicines();
+});
+
+/// Provider for all active alerts
+final activeAlertsProvider = StreamProvider<List<Alert>>((ref) {
+  return ref.watch(alertRepositoryProvider).watchActiveAlerts();
 });
 
 /// Provider for the current search query

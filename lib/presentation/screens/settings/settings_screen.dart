@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/inventory_provider.dart';
+
 /// Settings screen — app preferences and configuration
 /// Design spec: 08-Settings
 /// Nav bar is provided by MainShell — not rendered here.
@@ -30,7 +32,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
 
             // You card
-            _buildYouCard(context),
+            _buildYouCard(context, ref),
             const SizedBox(height: 24),
 
             // Notifications group
@@ -91,8 +93,28 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildYouCard(BuildContext context) {
+  Widget _buildYouCard(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final medicinesAsync = ref.watch(allMedicinesProvider);
+
+    final subtitle = medicinesAsync.when(
+      loading: () => '',
+      error: (_, __) => 'Your medicine cabinet',
+      data: (medicines) {
+        if (medicines.isEmpty) return 'No medicines yet';
+        final count = medicines.length;
+        final earliest = medicines
+            .map((m) => m.createdAt)
+            .reduce((a, b) => a.isBefore(b) ? a : b);
+        const months = [
+          'January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        final since =
+            '${months[earliest.month - 1]} ${earliest.year}';
+        return '$count medicine${count == 1 ? '' : 's'} · since $since';
+      },
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -132,14 +154,16 @@ class SettingsScreen extends ConsumerWidget {
                         fontWeight: FontWeight.w600,
                       ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  '22 medicines · since April 2026',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: colorScheme.onPrimaryContainer
-                            .withValues(alpha: 0.8),
-                      ),
-                ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onPrimaryContainer
+                              .withValues(alpha: 0.8),
+                        ),
+                  ),
+                ],
               ],
             ),
           ),
