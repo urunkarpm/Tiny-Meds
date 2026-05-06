@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
-import '../../../data/database/app_database.dart';
 import '../../../data/models/enums.dart';
 import '../../../domain/entities/medicine.dart';
 import '../../providers/inventory_provider.dart';
-import '../../providers/profile_provider.dart';
 import '../../widgets/med_tile.dart';
 import '../../widgets/status_pill.dart';
 import 'widgets/medicine_list_item.dart';

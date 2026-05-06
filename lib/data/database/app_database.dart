@@ -244,6 +244,7 @@ class AppDatabase extends _$AppDatabase {
     await transaction(() async {
       await delete(alerts).go();
       await delete(medicineInventory).go();
+      await delete(profiles).go();
     });
   }
 }

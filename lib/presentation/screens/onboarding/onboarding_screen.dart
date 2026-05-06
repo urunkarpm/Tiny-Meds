@@ -1,15 +1,23 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:csv/csv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../main_shell.dart';
 import '../../widgets/med_tile.dart';
+import '../../../domain/entities/medicine.dart';
+import '../../../data/models/enums.dart';
+import '../../providers/inventory_provider.dart';
 
 /// Onboarding screen — first-launch welcome
 /// Design spec: 01-Onboarding
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -123,7 +131,7 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   TextButton(
-                    onPressed: () => _navigateToMainApp(context),
+                    onPressed: () => _importCSV(context, ref),
                     child: const Text('I already have a list to import'),
                   ),
                   const SizedBox(height: 8),
@@ -141,6 +149,94 @@ class OnboardingScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _importCSV(BuildContext context, WidgetRef ref) async {
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+
+      if (result == null || result.files.single.path == null) return;
+
+      final file = File(result.files.single.path!);
+      final csvString = await file.readAsString();
+      
+      // Simple EOL detection
+      final eol = csvString.contains('\r\n') ? '\r\n' : '\n';
+      final fields = CsvToListConverter(eol: eol).convert(csvString);
+
+      if (fields.length <= 1) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('The selected file is empty or invalid.')),
+          );
+        }
+        return;
+      }
+
+      // Skip header
+      final data = fields.sublist(1);
+      final importData = <Map<String, dynamic>>[];
+
+      for (final row in data) {
+        if (row.length < 8) continue;
+        
+        try {
+          final medicine = Medicine(
+            name: row[0].toString(),
+            brand: row[1].toString().isEmpty ? null : row[1].toString(),
+            form: MedicineFormExtension.fromString(row[2].toString()),
+            strength: row[3].toString().isEmpty ? null : row[3].toString(),
+            quantity: int.tryParse(row[4].toString()) ?? 0,
+            unit: row[5].toString(),
+            expiryDate: DateTime.parse(row[6].toString()),
+            location: row[7].toString().isEmpty ? null : row[7].toString(),
+            createdAt: DateTime.now(),
+            updatedAt: DateTime.now(),
+          );
+
+          // Parse profile info if available (columns 8 and 9)
+          final profileName = row.length > 8 ? row[8].toString() : 'Primary Profile';
+          final profileColor = row.length > 9 
+              ? int.tryParse(row[9].toString()) ?? 0xFF2196F3 
+              : 0xFF2196F3;
+
+          importData.add({
+            'medicine': medicine,
+            'profileName': profileName,
+            'profileColor': profileColor,
+          });
+        } catch (e) {
+          debugPrint('Error parsing row: $e');
+        }
+      }
+
+      if (importData.isEmpty) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No valid medicines found in CSV.')),
+          );
+        }
+        return;
+      }
+
+      await ref.read(inventoryProvider.notifier).bulkAddMedicines(importData);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Imported ${importData.length} medicines.')),
+        );
+        _navigateToMainApp(context);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error importing CSV: $e')),
+        );
+      }
+    }
   }
 
   void _navigateToMainApp(BuildContext context) {

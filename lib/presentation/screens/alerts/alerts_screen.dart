@@ -463,7 +463,10 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                     context: context,
                     isScrollControlled: true,
                     useSafeArea: true,
-                    builder: (_) => AddMedicineBottomSheet(medicine: medicine),
+                    builder: (_) => AddMedicineBottomSheet(
+                      medicine: medicine,
+                      isRefilling: true,
+                    ),
                   );
                 },
                 style: TextButton.styleFrom(

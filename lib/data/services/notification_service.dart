@@ -288,7 +288,7 @@ class NotificationService {
   void _onNotificationTapped(NotificationResponse response) {
     // This would typically navigate to the relevant screen
     // Implementation depends on navigation setup
-    print('Notification tapped: ${response.payload}');
+    // debugPrint('Notification tapped'); 
   }
 
   String _getChannelName(String channelId) {

@@ -11,7 +11,12 @@ import '../../../providers/inventory_provider.dart';
 /// Steps: 1 Name · 2 The basics · 3 Where & When · 4 Review
 class AddMedicineBottomSheet extends ConsumerStatefulWidget {
   final Medicine? medicine;
-  const AddMedicineBottomSheet({super.key, this.medicine});
+  final bool isRefilling;
+  const AddMedicineBottomSheet({
+    super.key, 
+    this.medicine,
+    this.isRefilling = false,
+  });
 
   @override
   ConsumerState<AddMedicineBottomSheet> createState() =>
@@ -485,63 +490,106 @@ class _AddMedicineBottomSheetState
 
   Widget _buildAllFields(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isRefilling = widget.isRefilling;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildOutlinedField(context,
-            controller: _nameController,
-            label: 'Name',
-            hint: 'Medicine name',
-            validator: (v) =>
-                (v == null || v.trim().isEmpty) ? 'Required' : null),
-        const SizedBox(height: 16),
-        _buildOutlinedField(context,
-            controller: _brandController,
-            label: 'Brand (optional)',
-            hint: 'e.g. Generic Pharma'),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              flex: 14,
-              child: _buildOutlinedField(context,
-                  controller: _strengthController,
-                  label: 'Strength (optional)',
-                  hint: '500mg'),
+        if (isRefilling) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(width: 12),
-            Expanded(flex: 10, child: _buildUnitDropdown(context)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text('Form', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 10),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: MedicineForm.values.map((f) {
-            final sel = _selectedForm == f;
-            return FilterChip(
-              label: Text(f.displayName),
-              selected: sel,
-              onSelected: (_) => setState(() => _selectedForm = f),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-              selectedColor: colorScheme.primaryContainer,
-              showCheckmark: false,
-              side: sel
-                  ? BorderSide.none
-                  : BorderSide(color: colorScheme.outline),
-              labelStyle: TextStyle(
-                color: sel
-                    ? colorScheme.onPrimaryContainer
-                    : colorScheme.onSurfaceVariant,
-                fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
+            child: Row(
+              children: [
+                Icon(_formIcon(_selectedForm), 
+                    color: colorScheme.primary, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _nameController.text,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${_selectedForm.displayName}${_strengthController.text.isNotEmpty ? ' · ${_strengthController.text}' : ''}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
+
+        if (!isRefilling) ...[
+          _buildOutlinedField(context,
+              controller: _nameController,
+              label: 'Name',
+              hint: 'Medicine name',
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Required' : null),
+          const SizedBox(height: 16),
+          _buildOutlinedField(context,
+              controller: _brandController,
+              label: 'Brand (optional)',
+              hint: 'e.g. Generic Pharma'),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 14,
+                child: _buildOutlinedField(context,
+                    controller: _strengthController,
+                    label: 'Strength (optional)',
+                    hint: '500mg'),
               ),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 16),
+              const SizedBox(width: 12),
+              Expanded(flex: 10, child: _buildUnitDropdown(context)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text('Form', style: Theme.of(context).textTheme.titleSmall),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: MedicineForm.values.map((f) {
+              final sel = _selectedForm == f;
+              return FilterChip(
+                label: Text(f.displayName),
+                selected: sel,
+                onSelected: (_) => setState(() => _selectedForm = f),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                selectedColor: colorScheme.primaryContainer,
+                showCheckmark: false,
+                side: sel
+                    ? BorderSide.none
+                    : BorderSide(color: colorScheme.outline),
+                labelStyle: TextStyle(
+                  color: sel
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSurfaceVariant,
+                  fontWeight: sel ? FontWeight.w600 : FontWeight.w500,
+                ),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 16),
+        ],
+        
         Text('Quantity', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 10),
         _buildQuantityStepper(context),
@@ -606,16 +654,18 @@ class _AddMedicineBottomSheetState
           ),
         ),
         const SizedBox(height: 16),
-        _buildOutlinedField(context,
-            controller: _locationController,
-            label: 'Location (optional)',
-            hint: 'e.g. Fridge'),
-        const SizedBox(height: 16),
-        _buildOutlinedField(context,
-            controller: _thresholdController,
-            label: 'Low stock threshold (optional)',
-            hint: 'e.g. 5',
-            keyboardType: TextInputType.number),
+        if (!isRefilling) ...[
+          _buildOutlinedField(context,
+              controller: _locationController,
+              label: 'Location (optional)',
+              hint: 'e.g. Fridge'),
+          const SizedBox(height: 16),
+          _buildOutlinedField(context,
+              controller: _thresholdController,
+              label: 'Low stock threshold (optional)',
+              hint: 'e.g. 5',
+              keyboardType: TextInputType.number),
+        ],
         const SizedBox(height: 32),
       ],
     );
@@ -1077,12 +1127,18 @@ class _AddMedicineBottomSheetState
   }
 
   Future<void> _save({bool skipSteps = false}) async {
-    if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a medicine name.')),
-      );
+    if (_formKey.currentState?.validate() != true) {
+      if (!skipSteps && _pageController.hasClients) {
+        // Find which step has error? For now just go back to step 1 if name empty
+        if (_nameController.text.trim().isEmpty) {
+          _pageController.animateToPage(0,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic);
+        }
+      }
       return;
     }
+
     if (_selectedExpiryDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select an expiry date.')),

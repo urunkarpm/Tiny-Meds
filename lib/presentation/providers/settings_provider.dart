@@ -86,9 +86,13 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsState>> {
     
     if (value is bool) {
       await prefs.setBool(key, value);
-    } else if (value is String) await prefs.setString(key, value);
-    else if (value is int) await prefs.setInt(key, value);
-    else if (value is double) await prefs.setDouble(key, value);
+    } else if (value is String) {
+      await prefs.setString(key, value);
+    } else if (value is int) {
+      await prefs.setInt(key, value);
+    } else if (value is double) {
+      await prefs.setDouble(key, value);
+    }
 
     state.whenData((current) {
       state = AsyncValue.data(_updateStateFromKey(current, key, value));

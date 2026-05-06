@@ -19,6 +19,6 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
-    expect(find.text('Your Cabinet'), findsOneWidget);
+    expect(find.text('Cabinet'), findsNWidgets(2));
   });
 }

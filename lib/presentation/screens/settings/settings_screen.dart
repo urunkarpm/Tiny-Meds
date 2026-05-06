@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
+import 'package:csv/csv.dart';
 
 import '../../providers/inventory_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -119,7 +121,7 @@ class SettingsScreen extends ConsumerWidget {
               child: Center(
                 child: Text(
                   activeProfile?.name.substring(0, 1).toUpperCase() ?? 'Y',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
                     fontWeight: FontWeight.w600,
@@ -498,6 +500,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
                 if (time != null) {
                   notifier.updateSetting('quiet_hours_start', '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
+                  if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                 }
               },
@@ -515,6 +518,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
                 if (time != null) {
                   notifier.updateSetting('quiet_hours_end', '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
+                  if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                 }
               },
@@ -536,17 +540,19 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Notification sound'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: sounds.map((s) => RadioListTile<String>(
-            title: Text(s),
-            value: s,
-            groupValue: settings.notificationSound,
-            onChanged: (val) {
-              if (val != null) notifier.updateSetting('notification_sound', val);
-              Navigator.pop(ctx);
-            },
-          )).toList(),
+        content: RadioGroup<String>(
+          groupValue: settings.notificationSound,
+          onChanged: (val) {
+            if (val != null) notifier.updateSetting('notification_sound', val);
+            Navigator.pop(ctx);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: sounds.map((s) => RadioListTile<String>(
+              title: Text(s),
+              value: s,
+            )).toList(),
+          ),
         ),
       ),
     );
@@ -560,17 +566,19 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Default lead time'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: options.map((o) => RadioListTile<int>(
-            title: Text('$o days'),
-            value: o,
-            groupValue: settings.defaultLeadTime,
-            onChanged: (val) {
-              if (val != null) notifier.updateSetting('default_lead_time', val);
-              Navigator.pop(ctx);
-            },
-          )).toList(),
+        content: RadioGroup<int>(
+          groupValue: settings.defaultLeadTime,
+          onChanged: (val) {
+            if (val != null) notifier.updateSetting('default_lead_time', val);
+            Navigator.pop(ctx);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.map((o) => RadioListTile<int>(
+              title: Text('$o days'),
+              value: o,
+            )).toList(),
+          ),
         ),
       ),
     );
@@ -663,18 +671,68 @@ class SettingsScreen extends ConsumerWidget {
       return;
     }
 
-    String csv = 'Name,Brand,Form,Strength,Quantity,Unit,Expiry Date,Location\n';
+    final profiles = await ref.read(profilesProvider.future);
+    
+    final List<List<dynamic>> rows = [];
+    
+    // Add header
+    rows.add([
+      'Name',
+      'Brand',
+      'Form',
+      'Strength',
+      'Quantity',
+      'Unit',
+      'Expiry Date',
+      'Location',
+      'Profile Name',
+      'Profile Color'
+    ]);
+
     for (final m in medicines) {
-      csv += '${m.name},${m.brand ?? ""},${m.form.name},${m.strength ?? ""},${m.quantity},${m.unit},${m.expiryDate.toIso8601String().split('T')[0]},${m.location ?? ""}\n';
+      final profile = profiles.firstWhere((p) => p.id == m.profileId, 
+          orElse: () => profiles.first);
+          
+      rows.add([
+        m.name,
+        m.brand ?? '',
+        m.form.name,
+        m.strength ?? '',
+        m.quantity,
+        m.unit,
+        m.expiryDate.toIso8601String().split('T')[0],
+        m.location ?? '',
+        profile.name,
+        profile.colorValue
+      ]);
     }
+
+    final csv = const ListToCsvConverter().convert(rows);
 
     final tempDir = await getTemporaryDirectory();
     final file = File('${tempDir.path}/tiny_meds_export.csv');
     await file.writeAsString(csv);
 
     if (context.mounted) {
-      await Share.shareXFiles([XFile(file.path)],
-          subject: 'My Tiny-Meds Cabinet Export');
+      final params = SaveFileDialogParams(sourceFilePath: file.path);
+      final finalPath = await FlutterFileDialog.saveFile(params: params);
+
+      if (finalPath != null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Export saved to device'),
+            action: SnackBarAction(
+              label: 'Share',
+              onPressed: () {
+                SharePlus.instance.share(ShareParams(
+                  files: [XFile(finalPath)],
+                  subject: 'My Tiny-Meds Cabinet Export',
+                ));
+              },
+            ),
+          ),
+        );
+      }
     }
   }
 

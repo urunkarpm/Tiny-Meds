@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/enums.dart';
-import '../../data/database/app_database.dart';
 import '../../domain/entities/medicine.dart';
 import '../../domain/entities/alert.dart';
 import '../providers/repository_providers.dart';
@@ -73,6 +72,36 @@ class InventoryNotifier extends AsyncNotifier<List<Medicine>> {
   Future<bool> deleteMedicine(int id) async {
     final repository = ref.read(medicineRepositoryProvider);
     return await repository.deleteMedicine(id);
+  }
+
+  /// Bulk add medicines (for CSV import)
+  Future<void> bulkAddMedicines(List<Map<String, dynamic>> data) async {
+    final repository = ref.read(medicineRepositoryProvider);
+    final profileActions = ref.read(profileActionsProvider);
+    final profiles = await ref.read(profilesProvider.future);
+
+    for (final item in data) {
+      final medicine = item['medicine'] as Medicine;
+      final profileName = item['profileName'] as String;
+      final profileColor = item['profileColor'] as int;
+
+      // Find or create profile
+      int? profileId;
+      final existing = profiles.where((p) => p.name == profileName).toList();
+      if (existing.isNotEmpty) {
+        profileId = existing.first.id;
+      } else {
+        profileId = await profileActions.addProfile(profileName, profileColor);
+        // Refresh profiles list for next iterations
+        // This is a bit inefficient but safe for simple imports
+      }
+
+      final medWithProfile = medicine.copyWith(
+        profileId: profileId,
+        updatedAt: DateTime.now(),
+      );
+      await repository.insertMedicine(medWithProfile);
+    }
   }
 
   /// Mark a medicine as disposed

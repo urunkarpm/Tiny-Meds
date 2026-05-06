@@ -7,6 +7,7 @@ import 'alerts/alerts_screen.dart';
 import 'calendar/calendar_screen.dart';
 import 'settings/settings_screen.dart';
 import '../providers/inventory_provider.dart';
+import '../providers/profile_provider.dart';
 
 /// Main app shell with M3 NavigationBar and 5 tabs:
 /// Cabinet · Alerts · Shopping · Calendar · Settings
@@ -18,7 +19,7 @@ class MainShell extends ConsumerStatefulWidget {
 }
 
 class _MainShellState extends ConsumerState<MainShell> {
-  static const List<Widget> _screens = [
+  static const List<Widget> _allScreens = [
     InventoryScreen(),
     AlertsScreen(),
     ShoppingScreen(),
@@ -28,45 +29,65 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   @override
   Widget build(BuildContext context) {
+    final profilesAsync = ref.watch(profilesProvider);
+    final activeId = ref.watch(activeProfileIdProvider);
     final selectedIndex = ref.watch(bottomNavProvider);
+
+    // Determine if we are on the primary profile (the first one)
+    final isPrimaryProfile = profilesAsync.when(
+      data: (profiles) => profiles.isNotEmpty && activeId == profiles.first.id,
+      loading: () => true, // Default to true while loading to avoid UI flicker
+      error: (_, __) => true,
+    );
+
+    // If Settings (index 4) is selected but we're not on primary profile, 
+    // redirect to Cabinet (index 0)
+    if (!isPrimaryProfile && selectedIndex == 4) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(bottomNavProvider.notifier).state = 0;
+      });
+    }
+
+    final destinations = [
+      const NavigationDestination(
+        icon: Icon(Icons.home_outlined),
+        selectedIcon: Icon(Icons.home_rounded),
+        label: 'Cabinet',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.notifications_outlined),
+        selectedIcon: Icon(Icons.notifications_rounded),
+        label: 'Alerts',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.shopping_basket_outlined),
+        selectedIcon: Icon(Icons.shopping_basket_rounded),
+        label: 'Shopping',
+      ),
+      const NavigationDestination(
+        icon: Icon(Icons.calendar_today_outlined),
+        selectedIcon: Icon(Icons.calendar_today_rounded),
+        label: 'Calendar',
+      ),
+      if (isPrimaryProfile)
+        const NavigationDestination(
+          icon: Icon(Icons.settings_outlined),
+          selectedIcon: Icon(Icons.settings_rounded),
+          label: 'Settings',
+        ),
+    ];
 
     return Scaffold(
       body: IndexedStack(
         index: selectedIndex,
-        children: _screens,
+        children: _allScreens,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex,
+        selectedIndex: selectedIndex > destinations.length - 1 ? 0 : selectedIndex,
         onDestinationSelected: (index) {
           ref.read(bottomNavProvider.notifier).state = index;
         },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Cabinet',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.notifications_outlined),
-            selectedIcon: Icon(Icons.notifications_rounded),
-            label: 'Alerts',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.shopping_basket_outlined),
-            selectedIcon: Icon(Icons.shopping_basket_rounded),
-            label: 'Shopping',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today_rounded),
-            label: 'Calendar',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: 'Settings',
-          ),
-        ],
+        destinations: destinations,
       ),
     );
   }
