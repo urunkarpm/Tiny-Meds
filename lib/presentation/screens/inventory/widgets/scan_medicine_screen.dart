@@ -1,15 +1,17 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import '../../../../data/services/gemini_service.dart';
 
-class ScanMedicineScreen extends StatefulWidget {
+class ScanMedicineScreen extends ConsumerStatefulWidget {
   const ScanMedicineScreen({super.key});
 
   @override
-  State<ScanMedicineScreen> createState() => _ScanMedicineScreenState();
+  ConsumerState<ScanMedicineScreen> createState() => _ScanMedicineScreenState();
 }
 
-class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
+class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
   CameraController? _controller;
   bool _isPermissionGranted = false;
   bool _isProcessing = false;
@@ -64,10 +66,28 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
       final inputImage = InputImage.fromFilePath(image.path);
       final recognizedText = await _textRecognizer.processImage(inputImage);
 
-      if (mounted) {
-        final results = _processText(recognizedText.text);
-        Navigator.pop(context, results);
+      final geminiService = ref.read(geminiServiceProvider);
+      final geminiParsed = await geminiService.parseMedicineBoxText(recognizedText.text);
+
+      if (!mounted) return;
+
+      Map<String, dynamic> results;
+      if (geminiParsed != null && geminiParsed.name != null) {
+        results = {
+          'name': geminiParsed.name,
+          'strength': geminiParsed.strength,
+          'expiryDate': geminiParsed.expiryDate,
+        };
+      } else {
+        // Fallback to simple heuristic if Gemini is not configured or fails to extract the name
+        results = _processText(recognizedText.text);
+        if (geminiParsed != null) {
+          results['strength'] ??= geminiParsed.strength;
+          results['expiryDate'] ??= geminiParsed.expiryDate;
+        }
       }
+
+      Navigator.pop(context, results);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
