@@ -11,7 +11,12 @@ A production-ready Flutter Android application for managing home medicine invent
 - Search and filter functionality
 - Offline-first storage using Drift (SQLite)
 
-### 2. Alert Creation and Management
+### 2. AI Summaries & Insights
+- Automatically fetch a brief summary and chemical composition for added medicines
+- Powered by Google Gemini (`gemini-1.5-flash`)
+- Generates asynchronously to ensure a smooth, non-blocking user experience
+
+### 3. Alert Creation and Management
 - Expiry alerts with configurable lead times (30 days, 7 days, 1 day, on expiry)
 - Low stock notifications when quantity reaches threshold
 - Optional dose reminders (recurring or one-time)
@@ -49,6 +54,7 @@ lib/
 - **State Management**: Riverpod
 - **Local Database**: Drift (SQLite)
 - **Notifications**: flutter_local_notifications + workmanager
+- **AI Integration**: google_generative_ai (Google Gemini)
 - **UI**: Material 3
 - **Security**: flutter_secure_storage
 
@@ -166,6 +172,7 @@ The app supports:
 - Local data encrypted at rest
 - No third-party analytics or ads
 - Camera images processed entirely in memory (OCR feature)
+- Gemini API Key is stored securely on the device using `flutter_secure_storage` and is only sent directly to Google's API.
 - No upload of sensitive health data
 
 ## Medical Disclaimer
