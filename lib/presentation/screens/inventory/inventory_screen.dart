@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../data/models/enums.dart';
 import '../../../domain/entities/medicine.dart';
 import '../../providers/inventory_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../widgets/med_tile.dart';
 import '../../widgets/status_pill.dart';
 import 'widgets/medicine_list_item.dart';
@@ -38,8 +39,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           child: CircularProgressIndicator(color: colorScheme.primary),
         ),
         error: (error, _) => Center(
-          child: Text('Error: $error',
-              style: TextStyle(color: colorScheme.error)),
+          child:
+              Text('Error: $error', style: TextStyle(color: colorScheme.error)),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -54,7 +55,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
   Widget _buildBody(BuildContext context, List<Medicine> medicines) {
     final colorScheme = Theme.of(context).colorScheme;
     final expiredCount = medicines.where((m) => m.isExpired).length;
-    final lowStockCount = medicines.where((m) => m.isLowStock && !m.isExpired).length;
+    final lowStockCount =
+        medicines.where((m) => m.isLowStock && !m.isExpired).length;
     final attentionCount = expiredCount + lowStockCount;
 
     return SafeArea(
@@ -79,7 +81,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                         icon: const Icon(Icons.search_rounded),
                         onPressed: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const SearchScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const SearchScreen()),
                         ),
                         tooltip: 'Search',
                       ),
@@ -104,7 +107,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                               right: 10,
                               child: GestureDetector(
                                 onTap: () {
-                                  ref.read(bottomNavProvider.notifier).state = 1;
+                                  ref.read(bottomNavProvider.notifier).state =
+                                      1;
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -164,10 +168,11 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
             child: Row(
               children: [
-                _buildFilterChip(context, MedicineStatus.all,
-                    'All · ${medicines.length}'),
+                _buildFilterChip(
+                    context, MedicineStatus.all, 'All · ${medicines.length}'),
                 const SizedBox(width: 8),
-                _buildFilterChip(context, MedicineStatus.expiringSoon, 'Expiring'),
+                _buildFilterChip(
+                    context, MedicineStatus.expiringSoon, 'Expiring'),
                 const SizedBox(width: 8),
                 _buildFilterChip(context, MedicineStatus.lowStock, 'Low stock'),
                 const SizedBox(width: 8),
@@ -186,12 +191,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                     onRefresh: () async =>
                         await Future.delayed(const Duration(milliseconds: 300)),
                     child: ListView(
-                      padding:
-                          const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                       children: [
                         // Attention card
                         if (attentionCount > 0) ...[
-                          _buildAttentionCard(context, expiredCount, lowStockCount),
+                          _buildAttentionCard(
+                              context, expiredCount, lowStockCount),
                           const SizedBox(height: 16),
                         ],
                         // Section header
@@ -276,12 +281,12 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
       checkmarkColor: colorScheme.onSurface,
       labelStyle: TextStyle(
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-        color: isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+        color:
+            isSelected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
         fontSize: 14,
       ),
-      side: isSelected
-          ? BorderSide.none
-          : BorderSide(color: colorScheme.outline),
+      side:
+          isSelected ? BorderSide.none : BorderSide(color: colorScheme.outline),
       showCheckmark: isSelected,
     );
   }
@@ -295,7 +300,7 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
         .toSet()
         .toList()
       ..sort();
-        
+
     return PopupMenuButton<String>(
       tooltip: 'Filter by location',
       onSelected: (loc) {
@@ -303,9 +308,14 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
           SnackBar(content: Text('Filtering by $loc (Coming soon)')),
         );
       },
-      itemBuilder: (context) => locations.isEmpty 
-          ? [const PopupMenuItem(enabled: false, child: Text('No locations found'))]
-          : locations.map((loc) => PopupMenuItem(value: loc, child: Text(loc))).toList(),
+      itemBuilder: (context) => locations.isEmpty
+          ? [
+              const PopupMenuItem(
+                  enabled: false, child: Text('No locations found'))
+            ]
+          : locations
+              .map((loc) => PopupMenuItem(value: loc, child: Text(loc)))
+              .toList(),
       child: FilterChip(
         avatar: Icon(Icons.location_on_outlined,
             size: 16, color: colorScheme.onSurfaceVariant),
@@ -357,7 +367,8 @@ class _InventoryScreenState extends ConsumerState<InventoryScreen> {
                 color: colorScheme.error,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.warning_rounded, color: Colors.white, size: 28),
+              child: const Icon(Icons.warning_rounded,
+                  color: Colors.white, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -610,11 +621,14 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         _medicine.name,
-                                        style: Theme.of(context).textTheme.headlineSmall,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headlineSmall,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -623,8 +637,12 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                             _medicine.strength!,
                                           _medicine.form.displayName,
                                         ].join(' · '),
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              color: colorScheme.onSurfaceVariant,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color:
+                                                  colorScheme.onSurfaceVariant,
                                             ),
                                       ),
                                       if (_medicine.brand != null) ...[
@@ -732,14 +750,16 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                     label: 'Alert below',
                                     value:
                                         '${_medicine.lowStockThreshold} ${_medicine.unit}',
-                                    isLast: _medicine.frequency == null && _medicine.doseAmount == null,
+                                    isLast: _medicine.frequency == null &&
+                                        _medicine.doseAmount == null,
                                   ),
                                 if (_medicine.doseAmount != null)
                                   _buildDetailRow(
                                     context,
                                     icon: Icons.medication_outlined,
                                     label: 'Dose',
-                                    value: '${_medicine.doseAmount} ${_medicine.unit}',
+                                    value:
+                                        '${_medicine.doseAmount} ${_medicine.unit}',
                                     isLast: _medicine.frequency == null,
                                   ),
                                 if (_medicine.frequency != null)
@@ -753,6 +773,25 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+
+                    // AI Summary section
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'AI Summary',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 8),
+                          _buildAISummaryCard(context, ref),
                         ],
                       ),
                     ),
@@ -776,8 +815,8 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
                                 onPressed: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => SetAlertScreen(
-                                        medicine: _medicine),
+                                    builder: (_) =>
+                                        SetAlertScreen(medicine: _medicine),
                                   ),
                                 ),
                                 child: const Text('+ Add alert'),
@@ -826,14 +865,11 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
             // ── Sticky footer ────────────────────────────────────────
             Container(
               padding: EdgeInsets.fromLTRB(
-                  20,
-                  12,
-                  20,
-                  12 + MediaQuery.of(context).padding.bottom),
+                  20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                border: Border(
-                    top: BorderSide(color: colorScheme.outlineVariant)),
+                border:
+                    Border(top: BorderSide(color: colorScheme.outlineVariant)),
               ),
               child: Row(
                 children: [
@@ -928,11 +964,22 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
     );
   }
 
-  Widget _buildExpiryCard(
-      BuildContext context, int days, Color statusColor) {
+  Widget _buildExpiryCard(BuildContext context, int days, Color statusColor) {
     final colorScheme = Theme.of(context).colorScheme;
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
+    ];
     final expDate = _medicine.expiryDate;
     final expLabel =
         '${months[expDate.month - 1]} ${expDate.day}, ${expDate.year}';
@@ -1029,6 +1076,109 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
     );
   }
 
+  Widget _buildAISummaryCard(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final settingsAsync = ref.watch(settingsProvider);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: settingsAsync.when(
+        data: (settings) {
+          final apiKey = settings.geminiApiKey;
+
+          if (_medicine.summary != null && _medicine.summary!.isNotEmpty) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _medicine.summary!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (_medicine.chemicalComposition != null &&
+                    _medicine.chemicalComposition!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    'Composition',
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          letterSpacing: 0.5,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _medicine.chemicalComposition!,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ],
+            );
+          } else if (apiKey == null || apiKey.isEmpty) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'AI summaries are not configured.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    // Navigate to settings tab (index 3)
+                    Navigator.pop(context); // Close detail screen
+                    ref.read(bottomNavProvider.notifier).state = 3;
+                  },
+                  icon: const Icon(Icons.settings_outlined, size: 18),
+                  label: const Text('Configure in Settings'),
+                ),
+              ],
+            );
+          } else {
+            return Row(
+              children: [
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Generating AI Summary...',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ),
+              ],
+            );
+          }
+        },
+        loading: () => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+        ),
+        error: (err, _) => Text(
+          'Error loading settings',
+          style: TextStyle(color: colorScheme.error),
+        ),
+      ),
+    );
+  }
+
   Color _getStatusColor(ColorScheme cs, int days) {
     if (days < 0) return cs.error;
     if (days == 0) return Colors.red;
@@ -1043,8 +1193,18 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
 
   String _formatDate(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
@@ -1053,18 +1213,19 @@ class _MedicineDetailScreenState extends ConsumerState<MedicineDetailScreen> {
     final dose = _medicine.doseAmount ?? 1.0;
     if (_medicine.quantity < dose) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Not enough ${_medicine.unit} for a full dose.')),
+        SnackBar(
+            content: Text('Not enough ${_medicine.unit} for a full dose.')),
       );
       return;
     }
-    
+
     final newQuantity = (_medicine.quantity - dose).toInt();
     bool needsRefill = _medicine.needsRefill;
     if (_medicine.lowStockThreshold != null &&
         newQuantity <= _medicine.lowStockThreshold!) {
       needsRefill = true;
     }
-    
+
     final updated = _medicine.copyWith(
       quantity: newQuantity,
       needsRefill: needsRefill,

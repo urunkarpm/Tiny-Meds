@@ -40,20 +40,22 @@ class AppDatabase extends _$AppDatabase {
         if (from < 3) {
           // 1. Create profiles table
           await m.createTable(profiles);
-          
+
           // 2. Add profileId column to medicineInventory
           await m.addColumn(medicineInventory, medicineInventory.profileId);
-          
+
           // 3. Insert default profile
-          final defaultProfileId = await into(profiles).insert(ProfilesCompanion.insert(
+          final defaultProfileId =
+              await into(profiles).insert(ProfilesCompanion.insert(
             name: 'Primary Profile',
             colorValue: 0xFF2196F3,
             createdAt: Value(DateTime.now()),
           ));
-          
+
           // 4. Assign all existing medicines to this default profile
           await (update(medicineInventory)..where((t) => t.profileId.isNull()))
-              .write(MedicineInventoryCompanion(profileId: Value(defaultProfileId)));
+              .write(MedicineInventoryCompanion(
+                  profileId: Value(defaultProfileId)));
         }
       },
     );
@@ -78,12 +80,15 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteProfile(int id) async {
     await transaction(() async {
       // Delete alerts for medicines in this profile
-      final meds = await (select(medicineInventory)..where((t) => t.profileId.equals(id))).get();
+      final meds = await (select(medicineInventory)
+            ..where((t) => t.profileId.equals(id)))
+          .get();
       for (final med in meds) {
         await (delete(alerts)..where((t) => t.medicineId.equals(med.id))).go();
       }
       // Delete medicines
-      await (delete(medicineInventory)..where((t) => t.profileId.equals(id))).go();
+      await (delete(medicineInventory)..where((t) => t.profileId.equals(id)))
+          .go();
       // Delete profile
       await (delete(profiles)..where((t) => t.id.equals(id))).go();
     });
@@ -109,7 +114,8 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Get medicines by status filter
-  Stream<List<MedicineInventoryData>> watchMedicinesByStatus(MedicineStatus status) {
+  Stream<List<MedicineInventoryData>> watchMedicinesByStatus(
+      MedicineStatus status) {
     final now = DateTime.now();
     final expiringSoon = now.add(const Duration(days: 30));
     final expiringVerySoon = now.add(const Duration(days: 7));
@@ -132,7 +138,8 @@ class AppDatabase extends _$AppDatabase {
               case MedicineStatus.lowStock:
                 return t.isDisposed.equals(false) &
                     t.lowStockThreshold.isNotNull() &
-                    t.quantity.isSmallerOrEqual(t.lowStockThreshold.dartCast<int>());
+                    t.quantity
+                        .isSmallerOrEqual(t.lowStockThreshold.dartCast<int>());
             }
           })
           ..orderBy([(t) => OrderingTerm.asc(t.expiryDate)]))
@@ -164,7 +171,8 @@ class AppDatabase extends _$AppDatabase {
 
   /// Delete a medicine
   Future<bool> deleteMedicine(int id) {
-    return (delete(medicineInventory)..where((t) => t.id.equals(id))).go()
+    return (delete(medicineInventory)..where((t) => t.id.equals(id)))
+        .go()
         .then((_) => true);
   }
 
@@ -204,7 +212,8 @@ class AppDatabase extends _$AppDatabase {
 
   /// Delete an alert
   Future<bool> deleteAlert(int id) {
-    return (delete(alerts)..where((t) => t.id.equals(id))).go()
+    return (delete(alerts)..where((t) => t.id.equals(id)))
+        .go()
         .then((_) => true);
   }
 
@@ -216,8 +225,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Get all active alerts
   Stream<List<AlertData>> watchActiveAlerts() {
-    return (select(alerts)..where((t) => t.isActive.equals(true)))
-        .watch();
+    return (select(alerts)..where((t) => t.isActive.equals(true))).watch();
   }
 
   /// Update last notified time for an alert

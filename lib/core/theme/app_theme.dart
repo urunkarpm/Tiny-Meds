@@ -17,8 +17,10 @@ class AppTheme {
       brightness: Brightness.light,
     ),
     textTheme: const TextTheme(
-      headlineLarge: TextStyle(fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: -0.5),
-      headlineMedium: TextStyle(fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: -0.5),
+      headlineLarge: TextStyle(
+          fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: -0.5),
+      headlineMedium: TextStyle(
+          fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: -0.5),
       titleLarge: TextStyle(fontWeight: FontWeight.w600, fontSize: 22),
       titleMedium: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
       bodyLarge: TextStyle(fontSize: 16, height: 1.5),
@@ -48,9 +50,15 @@ class AppTheme {
       }),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         if (states.contains(WidgetState.selected)) {
-          return const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF001D3E));
+          return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF001D3E));
         }
-        return const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Color(0xFF44474E));
+        return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF44474E));
       }),
     ),
     cardTheme: CardThemeData(
@@ -210,7 +218,8 @@ class AppTheme {
   );
 
   /// Get expiry status color based on days until expiry
-  static Color getExpiryStatusColor(ColorScheme colorScheme, int daysUntilExpiry) {
+  static Color getExpiryStatusColor(
+      ColorScheme colorScheme, int daysUntilExpiry) {
     if (daysUntilExpiry < 0) {
       return colorScheme.error;
     } else if (daysUntilExpiry == 0) {

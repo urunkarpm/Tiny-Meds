@@ -25,7 +25,8 @@ class NotificationService {
     tz.initializeTimeZones();
 
     // Android initialization settings
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // iOS initialization settings
     const iosSettings = DarwinInitializationSettings(
@@ -73,9 +74,8 @@ class NotificationService {
       importance: Importance.defaultImportance,
     );
 
-    final androidPlugin = _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
       await androidPlugin.createNotificationChannel(expiryChannel);
@@ -86,9 +86,8 @@ class NotificationService {
 
   /// Request notification permissions (Android 13+)
   Future<bool> requestPermissions() async {
-    final androidPlugin = _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
       final granted = await androidPlugin.requestNotificationsPermission();
@@ -100,9 +99,8 @@ class NotificationService {
 
   /// Request exact alarm permission (Android 12+)
   Future<bool> requestExactAlarmPermission() async {
-    final androidPlugin = _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin = _notifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
       final granted = await androidPlugin.canScheduleExactNotifications();
@@ -164,7 +162,8 @@ class NotificationService {
       presentSound: true,
     );
 
-    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+    final details =
+        NotificationDetails(android: androidDetails, iOS: iosDetails);
 
     await _notifications.show(
       id,
@@ -208,7 +207,8 @@ class NotificationService {
       presentSound: true,
     );
 
-    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+    final details =
+        NotificationDetails(android: androidDetails, iOS: iosDetails);
 
     await _notifications.zonedSchedule(
       id,
@@ -245,7 +245,8 @@ class NotificationService {
 
     const iosDetails = DarwinNotificationDetails();
 
-    final details = NotificationDetails(android: androidDetails, iOS: iosDetails);
+    final details =
+        NotificationDetails(android: androidDetails, iOS: iosDetails);
 
     final now = tz.TZDateTime.now(tz.local);
     var scheduledDate = tz.TZDateTime(
@@ -288,7 +289,7 @@ class NotificationService {
   void _onNotificationTapped(NotificationResponse response) {
     // This would typically navigate to the relevant screen
     // Implementation depends on navigation setup
-    // debugPrint('Notification tapped'); 
+    // debugPrint('Notification tapped');
   }
 
   String _getChannelName(String channelId) {

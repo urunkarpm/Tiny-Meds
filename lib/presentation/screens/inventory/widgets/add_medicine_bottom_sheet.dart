@@ -13,7 +13,7 @@ class AddMedicineBottomSheet extends ConsumerStatefulWidget {
   final Medicine? medicine;
   final bool isRefilling;
   const AddMedicineBottomSheet({
-    super.key, 
+    super.key,
     this.medicine,
     this.isRefilling = false,
   });
@@ -46,7 +46,14 @@ class _AddMedicineBottomSheetState
   bool _isLoading = false;
 
   static const _unitOptions = [
-    'tablets', 'capsules', 'mL', 'mg', 'doses', 'tubes', 'sprays', 'patches',
+    'tablets',
+    'capsules',
+    'mL',
+    'mg',
+    'doses',
+    'tubes',
+    'sprays',
+    'patches',
   ];
 
   @override
@@ -208,8 +215,7 @@ class _AddMedicineBottomSheetState
           label: 'Name',
           hint: 'e.g. Amoxicillin',
           autofocus: true,
-          validator: (v) =>
-              (v == null || v.trim().isEmpty) ? 'Required' : null,
+          validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
         ),
         const SizedBox(height: 16),
         // Brand field
@@ -266,8 +272,8 @@ class _AddMedicineBottomSheetState
               label: Text(f.displayName),
               selected: sel,
               onSelected: (_) => setState(() => _selectedForm = f),
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
               selectedColor: colorScheme.primaryContainer,
               showCheckmark: false,
               side: sel
@@ -301,7 +307,8 @@ class _AddMedicineBottomSheetState
                 controller: _doseAmountController,
                 label: 'Amount per dose',
                 hint: '1',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
             const SizedBox(width: 12),
@@ -328,7 +335,8 @@ class _AddMedicineBottomSheetState
         children: [
           IconButton(
             icon: const Icon(Icons.remove_rounded, size: 18),
-            onPressed: _frequency > 1 ? () => setState(() => _frequency--) : null,
+            onPressed:
+                _frequency > 1 ? () => setState(() => _frequency--) : null,
           ),
           Expanded(
             child: Column(
@@ -445,7 +453,9 @@ class _AddMedicineBottomSheetState
           ),
           child: Column(
             children: [
-              _reviewRow(context, 'Name',
+              _reviewRow(
+                  context,
+                  'Name',
                   _nameController.text.trim().isEmpty
                       ? '—'
                       : _nameController.text.trim(),
@@ -453,11 +463,9 @@ class _AddMedicineBottomSheetState
               _reviewRow(context, 'Form', _selectedForm.displayName,
                   isLast: false),
               if (_strengthController.text.trim().isNotEmpty)
-                _reviewRow(context, 'Strength',
-                    _strengthController.text.trim(),
+                _reviewRow(context, 'Strength', _strengthController.text.trim(),
                     isLast: false),
-              _reviewRow(
-                  context, 'Quantity', '$_quantity $_selectedUnit',
+              _reviewRow(context, 'Quantity', '$_quantity $_selectedUnit',
                   isLast: false),
               if (_doseAmountController.text.trim().isNotEmpty)
                 _reviewRow(context, 'Dose',
@@ -505,7 +513,7 @@ class _AddMedicineBottomSheetState
             ),
             child: Row(
               children: [
-                Icon(_formIcon(_selectedForm), 
+                Icon(_formIcon(_selectedForm),
                     color: colorScheme.primary, size: 24),
                 const SizedBox(width: 12),
                 Expanded(
@@ -514,15 +522,16 @@ class _AddMedicineBottomSheetState
                     children: [
                       Text(
                         _nameController.text,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                       ),
                       Text(
                         '${_selectedForm.displayName}${_strengthController.text.isNotEmpty ? ' · ${_strengthController.text}' : ''}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                       ),
                     ],
                   ),
@@ -532,7 +541,6 @@ class _AddMedicineBottomSheetState
           ),
           const SizedBox(height: 24),
         ],
-
         if (!isRefilling) ...[
           _buildOutlinedField(context,
               controller: _nameController,
@@ -589,7 +597,6 @@ class _AddMedicineBottomSheetState
           ),
           const SizedBox(height: 16),
         ],
-        
         Text('Quantity', style: Theme.of(context).textTheme.titleSmall),
         const SizedBox(height: 10),
         _buildQuantityStepper(context),
@@ -605,7 +612,8 @@ class _AddMedicineBottomSheetState
                 controller: _doseAmountController,
                 label: 'Amount per dose',
                 hint: '1',
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
               ),
             ),
             const SizedBox(width: 12),
@@ -636,8 +644,10 @@ class _AddMedicineBottomSheetState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Expiry date',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant)),
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 4),
                       Text(
                           _selectedExpiryDate != null
@@ -704,10 +714,11 @@ class _AddMedicineBottomSheetState
                     children: [
                       Text(
                         'Scan the box',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
                       ),
                       const SizedBox(height: 2),
                       Text(
@@ -734,8 +745,7 @@ class _AddMedicineBottomSheetState
     final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Expanded(
-            child: Divider(color: colorScheme.outlineVariant, height: 1)),
+        Expanded(child: Divider(color: colorScheme.outlineVariant, height: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
@@ -746,8 +756,7 @@ class _AddMedicineBottomSheetState
                 ),
           ),
         ),
-        Expanded(
-            child: Divider(color: colorScheme.outlineVariant, height: 1)),
+        Expanded(child: Divider(color: colorScheme.outlineVariant, height: 1)),
       ],
     );
   }
@@ -791,7 +800,9 @@ class _AddMedicineBottomSheetState
   Widget _buildUnitDropdown(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return DropdownButtonFormField<String>(
-      initialValue: _unitOptions.contains(_selectedUnit) ? _selectedUnit : _unitOptions.first,
+      initialValue: _unitOptions.contains(_selectedUnit)
+          ? _selectedUnit
+          : _unitOptions.first,
       decoration: InputDecoration(
         labelText: 'Unit',
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -826,9 +837,8 @@ class _AddMedicineBottomSheetState
             width: 44,
             height: 44,
             child: OutlinedButton(
-              onPressed: _quantity > 1
-                  ? () => setState(() => _quantity--)
-                  : null,
+              onPressed:
+                  _quantity > 1 ? () => setState(() => _quantity--) : null,
               style: OutlinedButton.styleFrom(
                 shape: const CircleBorder(),
                 padding: EdgeInsets.zero,
@@ -894,13 +904,12 @@ class _AddMedicineBottomSheetState
     return Column(
       children: [
         Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
               Expanded(
-                child: Text(label,
-                    style: Theme.of(context).textTheme.bodyMedium),
+                child:
+                    Text(label, style: Theme.of(context).textTheme.bodyMedium),
               ),
               Text(
                 value,
@@ -912,8 +921,7 @@ class _AddMedicineBottomSheetState
           ),
         ),
         if (!isLast)
-          Divider(
-              height: 1, indent: 16, color: colorScheme.outlineVariant),
+          Divider(height: 1, indent: 16, color: colorScheme.outlineVariant),
       ],
     );
   }
@@ -929,8 +937,7 @@ class _AddMedicineBottomSheetState
             20, 12, 20, 12 + MediaQuery.of(context).padding.bottom),
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          border:
-              Border(top: BorderSide(color: colorScheme.outlineVariant)),
+          border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
         ),
         child: Row(
           children: [
@@ -938,8 +945,7 @@ class _AddMedicineBottomSheetState
               flex: 5,
               child: OutlinedButton(
                 onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 48)),
+                style: OutlinedButton.styleFrom(minimumSize: const Size(0, 48)),
                 child: const Text('Cancel'),
               ),
             ),
@@ -979,7 +985,8 @@ class _AddMedicineBottomSheetState
           Expanded(
             flex: 5,
             child: OutlinedButton(
-              onPressed: _currentStep == 0 ? () => Navigator.pop(context) : _prevStep,
+              onPressed:
+                  _currentStep == 0 ? () => Navigator.pop(context) : _prevStep,
               style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 48),
                   foregroundColor: colorScheme.primary),
@@ -1016,8 +1023,7 @@ class _AddMedicineBottomSheetState
 
   void _nextOrSave() {
     if (_currentStep < _totalSteps - 1) {
-      if (_currentStep == 0 &&
-          _nameController.text.trim().isEmpty) {
+      if (_currentStep == 0 && _nameController.text.trim().isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please enter a medicine name.')),
         );
@@ -1084,15 +1090,25 @@ class _AddMedicineBottomSheetState
 
   String _formatDate(DateTime date) {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
     return '${months[date.month - 1]} ${date.day}, ${date.year}';
   }
 
   Future<void> _pickExpiryDate(BuildContext context) async {
-    final initial = _selectedExpiryDate ??
-        DateTime.now().add(const Duration(days: 365));
+    final initial =
+        _selectedExpiryDate ?? DateTime.now().add(const Duration(days: 365));
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
@@ -1156,10 +1172,10 @@ class _AddMedicineBottomSheetState
     try {
       final threshold = int.tryParse(_thresholdController.text.trim());
       final doseAmount = double.tryParse(_doseAmountController.text.trim());
-      
+
       final m = widget.medicine;
       bool needsRefill = m?.needsRefill ?? false;
-      
+
       // If refilling above threshold, clear the refill flag
       if (threshold != null && _quantity > threshold) {
         needsRefill = false;

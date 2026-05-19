@@ -28,8 +28,8 @@ class ProfileSwitcher extends ConsumerWidget {
             children: [
               CircleAvatar(
                 radius: 14,
-                backgroundColor: activeProfile != null 
-                    ? Color(activeProfile.colorValue) 
+                backgroundColor: activeProfile != null
+                    ? Color(activeProfile.colorValue)
                     : colorScheme.primary,
                 child: Text(
                   activeProfile?.name.substring(0, 1).toUpperCase() ?? '?',
@@ -44,8 +44,8 @@ class ProfileSwitcher extends ConsumerWidget {
               Text(
                 activeProfile?.name ?? 'Profiles',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
               const Icon(Icons.arrow_drop_down_rounded),
             ],
@@ -61,14 +61,16 @@ class ProfileSwitcher extends ConsumerWidget {
                       backgroundColor: Color(p.colorValue),
                       child: Text(
                         p.name.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(color: Colors.white, fontSize: 10),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 10),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Text(p.name),
                     const Spacer(),
                     if (p.id == activeProfile?.id)
-                      Icon(Icons.check_rounded, color: colorScheme.primary, size: 18),
+                      Icon(Icons.check_rounded,
+                          color: colorScheme.primary, size: 18),
                   ],
                 ),
               )),
@@ -85,7 +87,10 @@ class ProfileSwitcher extends ConsumerWidget {
           ),
         ],
       ),
-      loading: () => const SizedBox(width: 32, height: 32, child: CircularProgressIndicator(strokeWidth: 2)),
+      loading: () => const SizedBox(
+          width: 32,
+          height: 32,
+          child: CircularProgressIndicator(strokeWidth: 2)),
       error: (_, __) => const Icon(Icons.error_outline),
     );
   }
@@ -93,7 +98,7 @@ class ProfileSwitcher extends ConsumerWidget {
   void _showAddProfileDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController();
     int selectedColor = 0xFF2196F3; // Default Blue
-    
+
     final colors = [
       0xFF2196F3, // Blue
       0xFF4CAF50, // Green
@@ -128,20 +133,22 @@ class ProfileSwitcher extends ConsumerWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: colors.map((c) => GestureDetector(
-                  onTap: () => setState(() => selectedColor = c),
-                  child: Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Color(c),
-                      shape: BoxShape.circle,
-                      border: selectedColor == c 
-                          ? Border.all(color: Colors.black, width: 2) 
-                          : null,
-                    ),
-                  ),
-                )).toList(),
+                children: colors
+                    .map((c) => GestureDetector(
+                          onTap: () => setState(() => selectedColor = c),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Color(c),
+                              shape: BoxShape.circle,
+                              border: selectedColor == c
+                                  ? Border.all(color: Colors.black, width: 2)
+                                  : null,
+                            ),
+                          ),
+                        ))
+                    .toList(),
               ),
             ],
           ),
@@ -154,9 +161,9 @@ class ProfileSwitcher extends ConsumerWidget {
               onPressed: () {
                 if (controller.text.isNotEmpty) {
                   ref.read(profileActionsProvider).addProfile(
-                    controller.text.trim(),
-                    selectedColor,
-                  );
+                        controller.text.trim(),
+                        selectedColor,
+                      );
                   Navigator.pop(context);
                 }
               },

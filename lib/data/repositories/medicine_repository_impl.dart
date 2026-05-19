@@ -102,10 +102,12 @@ class MedicineRepositoryImpl implements MedicineRepository {
     return _database.watchLowStockMedicines().map(_mapMedicines);
   }
 
-  MedicineInventoryCompanion _toCompanion(Medicine m, {bool forUpdate = false}) {
+  MedicineInventoryCompanion _toCompanion(Medicine m,
+      {bool forUpdate = false}) {
     return MedicineInventoryCompanion(
       id: m.id != null ? Value(m.id!) : const Value.absent(),
-      profileId: m.profileId != null ? Value(m.profileId!) : const Value.absent(),
+      profileId:
+          m.profileId != null ? Value(m.profileId!) : const Value.absent(),
       name: Value(m.name),
       brand: m.brand != null ? Value(m.brand) : const Value.absent(),
       form: Value(m.form),
@@ -113,13 +115,16 @@ class MedicineRepositoryImpl implements MedicineRepository {
       quantity: Value(m.quantity),
       unit: Value(m.unit),
       expiryDate: Value(m.expiryDate),
-      openedDate: m.openedDate != null ? Value(m.openedDate) : const Value.absent(),
+      openedDate:
+          m.openedDate != null ? Value(m.openedDate) : const Value.absent(),
       location: m.location != null ? Value(m.location) : const Value.absent(),
       lowStockThreshold: m.lowStockThreshold != null
           ? Value(m.lowStockThreshold)
           : const Value.absent(),
-      frequency: m.frequency != null ? Value(m.frequency) : const Value.absent(),
-      doseAmount: m.doseAmount != null ? Value(m.doseAmount) : const Value.absent(),
+      frequency:
+          m.frequency != null ? Value(m.frequency) : const Value.absent(),
+      doseAmount:
+          m.doseAmount != null ? Value(m.doseAmount) : const Value.absent(),
       needsRefill: Value(m.needsRefill),
       isDisposed: Value(m.isDisposed),
       createdAt: forUpdate ? const Value.absent() : Value(m.createdAt),

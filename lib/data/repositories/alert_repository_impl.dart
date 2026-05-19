@@ -94,7 +94,8 @@ class AlertRepositoryImpl implements AlertRepository {
       medicineId: Value(a.medicineId),
       type: Value(a.type),
       triggerDate: Value(a.triggerDate),
-      recurrence: a.recurrence != null ? Value(a.recurrence) : const Value.absent(),
+      recurrence:
+          a.recurrence != null ? Value(a.recurrence) : const Value.absent(),
       isActive: Value(a.isActive),
       lastNotified:
           a.lastNotified != null ? Value(a.lastNotified) : const Value.absent(),

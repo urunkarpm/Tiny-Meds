@@ -49,17 +49,29 @@ class MedTile extends StatelessWidget {
 
     double r, g, b;
     if (h < 60) {
-      r = c; g = x; b = 0;
+      r = c;
+      g = x;
+      b = 0;
     } else if (h < 120) {
-      r = x; g = c; b = 0;
+      r = x;
+      g = c;
+      b = 0;
     } else if (h < 180) {
-      r = 0; g = c; b = x;
+      r = 0;
+      g = c;
+      b = x;
     } else if (h < 240) {
-      r = 0; g = x; b = c;
+      r = 0;
+      g = x;
+      b = c;
     } else if (h < 300) {
-      r = x; g = 0; b = c;
+      r = x;
+      g = 0;
+      b = c;
     } else {
-      r = c; g = 0; b = x;
+      r = c;
+      g = 0;
+      b = x;
     }
 
     return Color.fromRGBO(
@@ -109,7 +121,8 @@ class _FormGlyphPainter extends CustomPainter {
     }
   }
 
-  void _drawTablet(Canvas canvas, Size size, Paint whitePaint, Paint strokePaint) {
+  void _drawTablet(
+      Canvas canvas, Size size, Paint whitePaint, Paint strokePaint) {
     final rect = Rect.fromCircle(
       center: Offset(size.width / 2, size.height / 2),
       radius: size.width * 0.35,
@@ -122,25 +135,29 @@ class _FormGlyphPainter extends CustomPainter {
     );
   }
 
-  void _drawCapsule(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
+  void _drawCapsule(
+      Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
     canvas.save();
     canvas.translate(size.width / 2, size.height / 2);
     canvas.rotate(-30 * 3.141592653589793 / 180);
     canvas.translate(-size.width / 2, -size.height / 2);
     final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.1, size.height * 0.35, size.width * 0.8, size.height * 0.3),
+      Rect.fromLTWH(size.width * 0.1, size.height * 0.35, size.width * 0.8,
+          size.height * 0.3),
       Radius.circular(size.height * 0.15),
     );
     canvas.drawRRect(rect, whitePaint);
     final halfRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.1, size.height * 0.35, size.width * 0.4, size.height * 0.3),
+      Rect.fromLTWH(size.width * 0.1, size.height * 0.35, size.width * 0.4,
+          size.height * 0.3),
       Radius.circular(size.height * 0.15),
     );
     canvas.drawRRect(halfRect, colorPaint);
     canvas.restore();
   }
 
-  void _drawLiquid(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
+  void _drawLiquid(
+      Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
     final path = Path()
       ..moveTo(size.width * 0.35, size.height * 0.2)
       ..lineTo(size.width * 0.65, size.height * 0.2)
@@ -157,39 +174,49 @@ class _FormGlyphPainter extends CustomPainter {
     canvas.drawPath(path, whitePaint);
 
     final liquidRect = Rect.fromLTWH(
-      size.width * 0.35, size.height * 0.55, size.width * 0.3, size.height * 0.25,
+      size.width * 0.35,
+      size.height * 0.55,
+      size.width * 0.3,
+      size.height * 0.25,
     );
     canvas.drawRect(liquidRect, colorPaint);
   }
 
-  void _drawCream(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint, Color accentColor) {
+  void _drawCream(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint,
+      Color accentColor) {
     final bodyRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.25, size.height * 0.3, size.width * 0.5, size.height * 0.55),
+      Rect.fromLTWH(size.width * 0.25, size.height * 0.3, size.width * 0.5,
+          size.height * 0.55),
       Radius.circular(size.width * 0.075),
     );
     canvas.drawRRect(bodyRect, whitePaint);
 
     final capRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.35, size.height * 0.15, size.width * 0.3, size.height * 0.15),
+      Rect.fromLTWH(size.width * 0.35, size.height * 0.15, size.width * 0.3,
+          size.height * 0.15),
       Radius.circular(size.width * 0.0375),
     );
     canvas.drawRRect(capRect, colorPaint);
 
     canvas.drawRect(
-      Rect.fromLTWH(size.width * 0.325, size.height * 0.45, size.width * 0.35, size.height * 0.075),
+      Rect.fromLTWH(size.width * 0.325, size.height * 0.45, size.width * 0.35,
+          size.height * 0.075),
       Paint()..color = accentColor.withValues(alpha: 0.4),
     );
   }
 
-  void _drawInhaler(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint, Color accentColor) {
+  void _drawInhaler(Canvas canvas, Size size, Paint whitePaint,
+      Paint colorPaint, Color accentColor) {
     final bodyRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.3, size.height * 0.15, size.width * 0.4, size.height * 0.55),
+      Rect.fromLTWH(size.width * 0.3, size.height * 0.15, size.width * 0.4,
+          size.height * 0.55),
       Radius.circular(size.width * 0.075),
     );
     canvas.drawRRect(bodyRect, whitePaint);
 
     final baseRect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width * 0.3, size.height * 0.7, size.width * 0.4, size.height * 0.15),
+      Rect.fromLTWH(size.width * 0.3, size.height * 0.7, size.width * 0.4,
+          size.height * 0.15),
       Radius.circular(size.width * 0.05),
     );
     canvas.drawRRect(baseRect, colorPaint);
@@ -201,9 +228,12 @@ class _FormGlyphPainter extends CustomPainter {
     );
   }
 
-  void _drawOther(Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width * 0.25, whitePaint);
-    canvas.drawCircle(Offset(size.width / 2, size.height / 2), size.width * 0.1, colorPaint);
+  void _drawOther(
+      Canvas canvas, Size size, Paint whitePaint, Paint colorPaint) {
+    canvas.drawCircle(
+        Offset(size.width / 2, size.height / 2), size.width * 0.25, whitePaint);
+    canvas.drawCircle(
+        Offset(size.width / 2, size.height / 2), size.width * 0.1, colorPaint);
   }
 
   @override
@@ -217,17 +247,29 @@ class _FormGlyphPainter extends CustomPainter {
 
     double r, g, b;
     if (h < 60) {
-      r = c; g = x; b = 0;
+      r = c;
+      g = x;
+      b = 0;
     } else if (h < 120) {
-      r = x; g = c; b = 0;
+      r = x;
+      g = c;
+      b = 0;
     } else if (h < 180) {
-      r = 0; g = c; b = x;
+      r = 0;
+      g = c;
+      b = x;
     } else if (h < 240) {
-      r = 0; g = x; b = c;
+      r = 0;
+      g = x;
+      b = c;
     } else if (h < 300) {
-      r = x; g = 0; b = c;
+      r = x;
+      g = 0;
+      b = c;
     } else {
-      r = c; g = 0; b = x;
+      r = c;
+      g = 0;
+      b = x;
     }
 
     return Color.fromRGBO(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/enums.dart';
+import '../../data/services/gemini_service.dart';
 import '../../domain/entities/medicine.dart';
 import '../../domain/entities/alert.dart';
 import '../providers/repository_providers.dart';
@@ -28,11 +29,12 @@ class InventoryNotifier extends AsyncNotifier<List<Medicine>> {
     final repository = ref.read(medicineRepositoryProvider);
     final activeId = ref.watch(activeProfileIdProvider);
     if (activeId == null) return Stream.value([]);
-    
+
     // Repository method currently doesn't filter by profile + status simultaneously in DB
     // We can filter in memory for now, or update database queries later
-    return repository.watchMedicinesByStatus(status).map((list) => 
-      list.where((m) => m.profileId == activeId).toList());
+    return repository
+        .watchMedicinesByStatus(status)
+        .map((list) => list.where((m) => m.profileId == activeId).toList());
   }
 
   /// Search medicines by query for active profile
@@ -40,26 +42,51 @@ class InventoryNotifier extends AsyncNotifier<List<Medicine>> {
     final repository = ref.read(medicineRepositoryProvider);
     final activeId = ref.watch(activeProfileIdProvider);
     if (activeId == null) return Stream.value([]);
-    
+
     if (query.isEmpty) {
       return repository.watchMedicinesForProfile(activeId);
     }
-    
-    return repository.searchMedicines(query).map((list) => 
-      list.where((m) => m.profileId == activeId).toList());
+
+    return repository
+        .searchMedicines(query)
+        .map((list) => list.where((m) => m.profileId == activeId).toList());
   }
 
   /// Add a new medicine to the active profile
   Future<int> addMedicine(Medicine medicine) async {
     final repository = ref.read(medicineRepositoryProvider);
     final activeId = ref.read(activeProfileIdProvider);
-    
+
     final medWithProfile = medicine.copyWith(
       profileId: activeId,
       updatedAt: DateTime.now(),
     );
+
+    final id = await repository.insertMedicine(medWithProfile);
+
+    // Trigger asynchronous Gemini AI summary generation
+    _generateGeminiSummaryAsync(id, medWithProfile.name, medWithProfile.brand);
+
+    return id;
+  }
+
+  Future<void> _generateGeminiSummaryAsync(int medicineId, String name, String? brand) async {
+    final geminiService = ref.read(geminiServiceProvider);
+    final result = await geminiService.generateMedicineSummary(name, brand);
     
-    return await repository.insertMedicine(medWithProfile);
+    if (result != null) {
+      final repository = ref.read(medicineRepositoryProvider);
+      final medicine = await repository.getMedicineById(medicineId);
+      if (medicine != null) {
+        await updateMedicine(
+          medicine.copyWith(
+            summary: result.summary,
+            chemicalComposition: result.chemicalComposition,
+            updatedAt: DateTime.now(),
+          )
+        );
+      }
+    }
   }
 
   /// Update an existing medicine
@@ -115,7 +142,7 @@ class InventoryNotifier extends AsyncNotifier<List<Medicine>> {
     final repository = ref.read(medicineRepositoryProvider);
     final medicine = await repository.getMedicineById(id);
     if (medicine == null) return false;
-    
+
     return await repository.updateMedicine(
       medicine.copyWith(needsRefill: needsRefill, updatedAt: DateTime.now()),
     );
@@ -133,14 +160,16 @@ class AlertNotifier extends AsyncNotifier<List<Alert>> {
   Future<int> addAlert(Alert alert, Medicine medicine) async {
     final repository = ref.read(alertRepositoryProvider);
     final id = await repository.insertAlert(alert);
-    
+
     // Schedule notification
     final notificationService = ref.read(notificationServiceProvider);
-    if (alert.type == AlertType.dose && alert.recurrence == RecurrencePattern.daily) {
+    if (alert.type == AlertType.dose &&
+        alert.recurrence == RecurrencePattern.daily) {
       await notificationService.scheduleDailyNotification(
         id: id,
         title: 'Time for ${medicine.name}',
-        body: 'Take ${medicine.doseAmount ?? 1} ${medicine.unit} of ${medicine.name}',
+        body:
+            'Take ${medicine.doseAmount ?? 1} ${medicine.unit} of ${medicine.name}',
         time: TimeOfDay.fromDateTime(alert.triggerDate),
       );
     } else {
@@ -152,7 +181,7 @@ class AlertNotifier extends AsyncNotifier<List<Alert>> {
         channelId: _getChannelId(alert.type),
       );
     }
-    
+
     return id;
   }
 
@@ -253,7 +282,8 @@ final filteredMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
   return stream.map((medicines) {
     final sorted = List<Medicine>.from(medicines);
     if (sortOrder == SortOrder.name) {
-      sorted.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      sorted
+          .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     } else {
       sorted.sort((a, b) => a.expiryDate.compareTo(b.expiryDate));
     }
@@ -266,7 +296,7 @@ final activeAlertsProvider = StreamProvider<List<Alert>>((ref) {
   final repository = ref.watch(alertRepositoryProvider);
   final activeId = ref.watch(activeProfileIdProvider);
   if (activeId == null) return Stream.value([]);
-  
+
   return repository.watchActiveAlerts().asyncMap((alerts) async {
     final medRepo = ref.read(medicineRepositoryProvider);
     final filteredAlerts = <Alert>[];
@@ -284,48 +314,49 @@ final activeAlertsProvider = StreamProvider<List<Alert>>((ref) {
 final expiredMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
   final activeId = ref.watch(activeProfileIdProvider);
   if (activeId == null) return Stream.value([]);
-  
+
   final repository = ref.watch(medicineRepositoryProvider);
-  return repository.watchMedicinesByStatus(MedicineStatus.expired).map((list) => 
-    list.where((m) => m.profileId == activeId).toList());
+  return repository
+      .watchMedicinesByStatus(MedicineStatus.expired)
+      .map((list) => list.where((m) => m.profileId == activeId).toList());
 });
 
 /// Provider for low stock medicines for the active profile
 final lowStockMedicinesProvider = StreamProvider<List<Medicine>>((ref) {
   final activeId = ref.watch(activeProfileIdProvider);
   if (activeId == null) return Stream.value([]);
-  
+
   final repository = ref.watch(medicineRepositoryProvider);
-  return repository.watchLowStockMedicines().map((list) => 
-    list.where((m) => m.profileId == activeId).toList());
+  return repository
+      .watchLowStockMedicines()
+      .map((list) => list.where((m) => m.profileId == activeId).toList());
 });
 
 /// Provider for medicines that need refill (shopping list) for the active profile
 final shoppingListProvider = StreamProvider<List<Medicine>>((ref) {
   final activeId = ref.watch(activeProfileIdProvider);
   if (activeId == null) return Stream.value([]);
-  
+
   final repository = ref.watch(medicineRepositoryProvider);
-  return repository.watchMedicinesForProfile(activeId).map((list) => 
-    list.where((m) => m.needsRefill && !m.isDisposed).toList());
+  return repository.watchMedicinesForProfile(activeId).map(
+      (list) => list.where((m) => m.needsRefill && !m.isDisposed).toList());
 });
 
 /// Provider for medicine inventory summary (count and oldest date) for active profile
 final inventorySummaryProvider = StreamProvider<Map<String, dynamic>>((ref) {
   final activeId = ref.watch(activeProfileIdProvider);
   if (activeId == null) return Stream.value({'count': 0, 'since': null});
-  
+
   final repository = ref.watch(medicineRepositoryProvider);
   return repository.watchMedicinesForProfile(activeId).map((medicines) {
     if (medicines.isEmpty) {
       return {'count': 0, 'since': null};
     }
-    
+
     // Find earliest createdAt date
-    final oldest = medicines.reduce((a, b) => 
-      a.createdAt.isBefore(b.createdAt) ? a : b
-    );
-    
+    final oldest =
+        medicines.reduce((a, b) => a.createdAt.isBefore(b.createdAt) ? a : b);
+
     return {
       'count': medicines.length,
       'since': oldest.createdAt,

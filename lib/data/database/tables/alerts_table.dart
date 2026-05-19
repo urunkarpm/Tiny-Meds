@@ -18,7 +18,8 @@ class Alerts extends Table {
   DateTimeColumn get triggerDate => dateTime()();
 
   /// Recurrence pattern: none, daily, weekly, custom
-  TextColumn get recurrence => text().map(const RecurrencePatternConverter()).nullable()();
+  TextColumn get recurrence =>
+      text().map(const RecurrencePatternConverter()).nullable()();
 
   /// Whether the alert is active
   BoolColumn get isActive => boolean().withDefault(const Constant(true))();
@@ -46,7 +47,8 @@ class AlertTypeConverter extends TypeConverter<AlertType, String> {
 }
 
 /// Converter for RecurrencePattern enum
-class RecurrencePatternConverter extends TypeConverter<RecurrencePattern, String> {
+class RecurrencePatternConverter
+    extends TypeConverter<RecurrencePattern, String> {
   const RecurrencePatternConverter();
 
   @override

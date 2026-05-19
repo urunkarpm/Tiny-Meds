@@ -71,7 +71,8 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
             const SizedBox(height: 24),
 
             // Type selector
-            Text('Reminder Type', style: Theme.of(context).textTheme.titleSmall),
+            Text('Reminder Type',
+                style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
             _buildTypeSelector(context),
             const SizedBox(height: 24),
@@ -81,7 +82,8 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Frequency', style: Theme.of(context).textTheme.titleSmall),
+                  Text('Frequency',
+                      style: Theme.of(context).textTheme.titleSmall),
                   Text('${_doseTimes.length} times / day',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: colorScheme.primary,
@@ -138,8 +140,8 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
               children: [
                 Text(widget.medicine.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    )),
+                          fontWeight: FontWeight.w600,
+                        )),
                 Text(
                   '${widget.medicine.strength ?? ""} ${widget.medicine.form.displayName}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -205,7 +207,8 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
         const SizedBox(width: 16),
         IconButton.filledTonal(
           onPressed: _doseTimes.length < 12
-              ? () => setState(() => _doseTimes.add(const TimeOfDay(hour: 12, minute: 0)))
+              ? () => setState(
+                  () => _doseTimes.add(const TimeOfDay(hour: 12, minute: 0)))
               : null,
           icon: const Icon(Icons.add_rounded),
         ),
@@ -216,7 +219,7 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
   Widget _buildTimePicker(BuildContext context, int index) {
     final colorScheme = Theme.of(context).colorScheme;
     final time = _doseTimes[index];
-    
+
     return InkWell(
       onTap: () async {
         final picked = await showTimePicker(
@@ -298,7 +301,7 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
 
     try {
       final notifier = ref.read(alertsNotifierProvider.notifier);
-      
+
       if (_selectedType == AlertType.dose) {
         // Save multiple dose alerts
         for (final time in _doseTimes) {
@@ -309,7 +312,7 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
             time.hour,
             time.minute,
           );
-          
+
           final alert = Alert(
             medicineId: widget.medicine.id!,
             type: AlertType.dose,
@@ -317,7 +320,7 @@ class _SetAlertScreenState extends ConsumerState<SetAlertScreen> {
             recurrence: _recurrence,
             createdAt: DateTime.now(),
           );
-          
+
           await notifier.addAlert(alert, widget.medicine);
         }
       } else {

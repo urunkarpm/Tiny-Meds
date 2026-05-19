@@ -25,14 +25,14 @@ final activeProfileIdProvider = StateProvider<int?>((ref) {
 final activeProfileProvider = Provider<Profile?>((ref) {
   final activeId = ref.watch(activeProfileIdProvider);
   final profilesAsync = ref.watch(profilesProvider);
-  
+
   return profilesAsync.when(
     data: (profiles) {
       if (activeId == null && profiles.isNotEmpty) return profiles.first;
       return profiles.cast<Profile?>().firstWhere(
-        (p) => p?.id == activeId,
-        orElse: () => profiles.isNotEmpty ? profiles.first : null,
-      );
+            (p) => p?.id == activeId,
+            orElse: () => profiles.isNotEmpty ? profiles.first : null,
+          );
     },
     loading: () => null,
     error: (_, __) => null,

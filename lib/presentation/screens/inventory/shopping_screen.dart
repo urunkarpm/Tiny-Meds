@@ -68,11 +68,13 @@ class ShoppingScreen extends ConsumerWidget {
                               onTap: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => MedicineDetailScreen(medicine: medicine),
+                                  builder: (_) =>
+                                      MedicineDetailScreen(medicine: medicine),
                                 ),
                               ),
                               onEdit: () => _showEditSheet(context, medicine),
-                              onDelete: () => _confirmDelete(context, ref, medicine),
+                              onDelete: () =>
+                                  _confirmDelete(context, ref, medicine),
                             ),
                           );
                         },
@@ -94,7 +96,8 @@ class ShoppingScreen extends ConsumerWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.shopping_basket_outlined,
-              size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+              size: 64,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'Your list is empty',
@@ -141,7 +144,9 @@ class ShoppingScreen extends ConsumerWidget {
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ref.read(inventoryProvider.notifier).toggleNeedsRefill(medicine.id!, false);
+              ref
+                  .read(inventoryProvider.notifier)
+                  .toggleNeedsRefill(medicine.id!, false);
             },
             child: const Text('Remove'),
           ),

@@ -89,7 +89,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           contentPadding: EdgeInsets.zero,
                           fillColor: Colors.transparent,
                           filled: false,
-                          hintStyle: Theme.of(context).textTheme.bodyLarge
+                          hintStyle: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
                               ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                         cursorColor: colorScheme.primary,
@@ -138,8 +140,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        _statusChip(context, 'expired', 'Expired',
-                            colorScheme.error),
+                        _statusChip(
+                            context, 'expired', 'Expired', colorScheme.error),
                         _statusChip(context, 'soon', 'Expiring soon',
                             const Color(0xFFFF9800)),
                         _statusChip(context, 'low', 'Low stock', null),
@@ -150,8 +152,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     const SizedBox(height: 24),
 
                     // Form filter
-                    Text('Form',
-                        style: Theme.of(context).textTheme.titleSmall),
+                    Text('Form', style: Theme.of(context).textTheme.titleSmall),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,
@@ -222,8 +223,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   20, 16, 20, 16 + MediaQuery.of(context).padding.bottom),
               decoration: BoxDecoration(
                 color: colorScheme.surface,
-                border: Border(
-                    top: BorderSide(color: colorScheme.outlineVariant)),
+                border:
+                    Border(top: BorderSide(color: colorScheme.outlineVariant)),
               ),
               child: Row(
                 children: [
@@ -265,8 +266,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       onSelected: (v) => setState(
           () => v ? _statusFilters.add(key) : _statusFilters.remove(key)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      selectedColor:
-          color != null ? color.withValues(alpha: 0.15) : colorScheme.surfaceContainerHigh,
+      selectedColor: color != null
+          ? color.withValues(alpha: 0.15)
+          : colorScheme.surfaceContainerHigh,
       labelStyle: TextStyle(
         color: selected
             ? (color ?? colorScheme.onSurface)
@@ -287,7 +289,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return FilterChip(
       avatar: Icon(_formIcon(form),
           size: 16,
-          color: selected ? colorScheme.onSurface : colorScheme.onSurfaceVariant),
+          color:
+              selected ? colorScheme.onSurface : colorScheme.onSurfaceVariant),
       label: Text(form.displayName),
       selected: selected,
       onSelected: (v) => setState(
@@ -299,9 +302,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
         fontSize: 14,
       ),
-      side: selected
-          ? BorderSide.none
-          : BorderSide(color: colorScheme.outline),
+      side: selected ? BorderSide.none : BorderSide(color: colorScheme.outline),
       showCheckmark: false,
     );
   }
@@ -312,7 +313,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return FilterChip(
       avatar: Icon(Icons.location_on_outlined,
           size: 16,
-          color: selected ? colorScheme.onSurface : colorScheme.onSurfaceVariant),
+          color:
+              selected ? colorScheme.onSurface : colorScheme.onSurfaceVariant),
       label: Text(loc),
       selected: selected,
       onSelected: (v) => setState(
@@ -324,20 +326,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
         fontSize: 14,
       ),
-      side: selected
-          ? BorderSide.none
-          : BorderSide(color: colorScheme.outline),
+      side: selected ? BorderSide.none : BorderSide(color: colorScheme.outline),
       showCheckmark: false,
     );
   }
 
   List<String> _locationOptions() {
     final all = ref.read(filteredMedicinesProvider).asData?.value ?? [];
-    final locs = all
-        .map((m) => m.location)
-        .whereType<String>()
-        .toSet()
-        .toList()
+    final locs = all.map((m) => m.location).whereType<String>().toSet().toList()
       ..sort();
     return locs.isEmpty
         ? ['Kitchen', 'Fridge', 'Bathroom', 'Bedside', 'Travel kit']

@@ -54,6 +54,11 @@ class SettingsScreen extends ConsumerWidget {
               _buildDefaultsGroup(context, ref, settings),
               const SizedBox(height: 24),
 
+              // AI features group
+              _buildSectionHeader(context, 'AI Features'),
+              _buildAIFeaturesGroup(context, ref, settings),
+              const SizedBox(height: 24),
+
               // Your data group
               _buildSectionHeader(context, 'Your data'),
               _buildYourDataGroup(context, ref),
@@ -97,7 +102,7 @@ class SettingsScreen extends ConsumerWidget {
     final activeProfile = ref.watch(activeProfileProvider);
 
     return InkWell(
-      onTap: activeProfile != null 
+      onTap: activeProfile != null
           ? () => _showEditProfileDialog(context, ref, activeProfile)
           : null,
       borderRadius: BorderRadius.circular(16),
@@ -113,8 +118,8 @@ class SettingsScreen extends ConsumerWidget {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: activeProfile != null 
-                    ? Color(activeProfile.colorValue) 
+                color: activeProfile != null
+                    ? Color(activeProfile.colorValue)
                     : colorScheme.primary,
                 shape: BoxShape.circle,
               ),
@@ -135,22 +140,23 @@ class SettingsScreen extends ConsumerWidget {
                 data: (summary) {
                   final count = summary['count'] as int;
                   final since = summary['since'] as DateTime?;
-                  
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         activeProfile?.name ?? 'Your cabinet',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        style:
+                            Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        since != null 
-                          ? '$count medicines · since ${DateFormat('MMMM yyyy').format(since)}'
-                          : 'Empty cabinet',
+                        since != null
+                            ? '$count medicines · since ${DateFormat('MMMM yyyy').format(since)}'
+                            : 'Empty cabinet',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onPrimaryContainer
                                   .withValues(alpha: 0.8),
@@ -171,9 +177,10 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditProfileDialog(BuildContext context, WidgetRef ref, Profile profile) {
+  void _showEditProfileDialog(
+      BuildContext context, WidgetRef ref, Profile profile) {
     final controller = TextEditingController(text: profile.name);
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -196,12 +203,13 @@ class SettingsScreen extends ConsumerWidget {
             onPressed: () {
               if (controller.text.isNotEmpty) {
                 ref.read(profileActionsProvider).updateProfile(
-                  profile.copyWith(name: controller.text.trim()),
-                );
+                      profile.copyWith(name: controller.text.trim()),
+                    );
                 Navigator.pop(ctx);
               }
             },
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.primary),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary),
             child: const Text('Save'),
           ),
         ],
@@ -209,7 +217,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildNotificationsGroup(BuildContext context, WidgetRef ref, SettingsState settings) {
+  Widget _buildNotificationsGroup(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final colorScheme = Theme.of(context).colorScheme;
     final notifier = ref.read(settingsProvider.notifier);
 
@@ -221,47 +230,47 @@ class SettingsScreen extends ConsumerWidget {
       child: Column(
         children: [
           _switchRow(
-            context, 
-            Icons.access_time_rounded, 
+            context,
+            Icons.access_time_rounded,
             'Expiry alerts',
-            null, 
+            null,
             settings.expiryAlertsEnabled,
             (val) => notifier.updateSetting('expiry_alerts_enabled', val),
           ),
           _divider(colorScheme),
           _switchRow(
-            context, 
-            Icons.inventory_2_rounded, 
+            context,
+            Icons.inventory_2_rounded,
             'Low stock alerts',
-            null, 
+            null,
             settings.lowStockAlertsEnabled,
             (val) => notifier.updateSetting('low_stock_alerts_enabled', val),
           ),
           _divider(colorScheme),
           _switchRow(
-            context, 
-            Icons.notifications_rounded, 
+            context,
+            Icons.notifications_rounded,
             'Dose reminders',
-            null, 
+            null,
             settings.doseRemindersEnabled,
             (val) => notifier.updateSetting('dose_reminders_enabled', val),
           ),
           _divider(colorScheme),
           _navRow(
-            context, 
-            Icons.bedtime_rounded, 
+            context,
+            Icons.bedtime_rounded,
             'Quiet hours',
-            'Mute between ${settings.quietHoursStart} and ${settings.quietHoursEnd}', 
-            settings.quietHoursEnabled ? 'On' : 'Off', 
+            'Mute between ${settings.quietHoursStart} and ${settings.quietHoursEnd}',
+            settings.quietHoursEnabled ? 'On' : 'Off',
             () => _showQuietHoursDialog(context, ref, settings),
           ),
           _divider(colorScheme),
           _navRow(
-            context, 
-            Icons.music_note_rounded, 
+            context,
+            Icons.music_note_rounded,
             'Notification sound',
-            null, 
-            settings.notificationSound, 
+            null,
+            settings.notificationSound,
             () => _showSoundDialog(context, ref, settings),
           ),
         ],
@@ -269,7 +278,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDefaultsGroup(BuildContext context, WidgetRef ref, SettingsState settings) {
+  Widget _buildDefaultsGroup(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
@@ -280,30 +290,56 @@ class SettingsScreen extends ConsumerWidget {
       child: Column(
         children: [
           _navRow(
-            context, 
-            Icons.schedule_rounded, 
+            context,
+            Icons.schedule_rounded,
             'Default lead time',
-            null, 
-            '${settings.defaultLeadTime} days', 
+            null,
+            '${settings.defaultLeadTime} days',
             () => _showLeadTimeDialog(context, ref, settings),
           ),
           _divider(colorScheme),
           _navRow(
-            context, 
-            Icons.inventory_2_rounded, 
+            context,
+            Icons.inventory_2_rounded,
             'Low-stock threshold',
-            null, 
-            '${settings.lowStockThreshold} units', 
+            null,
+            '${settings.lowStockThreshold} units',
             () => _showThresholdDialog(context, ref, settings),
           ),
           _divider(colorScheme),
           _navRow(
-            context, 
-            Icons.location_on_outlined, 
+            context,
+            Icons.location_on_outlined,
             'Default location',
-            null, 
-            settings.defaultLocation, 
+            null,
+            settings.defaultLocation,
             () => _showLocationDialog(context, ref, settings),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAIFeaturesGroup(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          _navRow(
+            context,
+            Icons.auto_awesome_rounded,
+            'Gemini API Key',
+            settings.geminiApiKey != null && settings.geminiApiKey!.isNotEmpty
+                ? 'Configured'
+                : 'Not configured',
+            null,
+            () => _showGeminiKeyDialog(context, ref, settings),
           ),
         ],
       ),
@@ -321,20 +357,20 @@ class SettingsScreen extends ConsumerWidget {
       child: Column(
         children: [
           _navRow(
-            context, 
-            Icons.download_rounded, 
+            context,
+            Icons.download_rounded,
             'Export as CSV',
-            'Download your medicine list', 
-            null, 
+            'Download your medicine list',
+            null,
             () => _exportAsCSV(context, ref),
           ),
           _divider(colorScheme),
           _navRow(
-            context, 
-            Icons.info_outline_rounded, 
+            context,
+            Icons.info_outline_rounded,
             'Medical disclaimer',
-            null, 
-            null, 
+            null,
+            null,
             () => _showDisclaimer(context),
           ),
           _divider(colorScheme),
@@ -357,8 +393,7 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: Theme.of(context).textTheme.bodyLarge),
+                Text(label, style: Theme.of(context).textTheme.bodyLarge),
                 if (sub != null) ...[
                   const SizedBox(height: 2),
                   Text(sub,
@@ -378,8 +413,8 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _navRow(BuildContext context, IconData icon, String label,
-      String? sub, String? trailing, VoidCallback onTap) {
+  Widget _navRow(BuildContext context, IconData icon, String label, String? sub,
+      String? trailing, VoidCallback onTap) {
     final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onTap,
@@ -422,8 +457,7 @@ class SettingsScreen extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: () => _showResetConfirmation(context, ref),
-      borderRadius:
-          const BorderRadius.vertical(bottom: Radius.circular(16)),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
@@ -469,7 +503,8 @@ class SettingsScreen extends ConsumerWidget {
 
   // ─── Dialogs & Actions ──────────────────────────────────────────────────
 
-  void _showQuietHoursDialog(BuildContext context, WidgetRef ref, SettingsState settings) {
+  void _showQuietHoursDialog(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final notifier = ref.read(settingsProvider.notifier);
     showDialog(
       context: context,
@@ -484,7 +519,8 @@ class SettingsScreen extends ConsumerWidget {
               onChanged: (val) {
                 notifier.updateSetting('quiet_hours_enabled', val);
                 Navigator.pop(ctx);
-                _showQuietHoursDialog(context, ref, settings.copyWith(quietHoursEnabled: val));
+                _showQuietHoursDialog(
+                    context, ref, settings.copyWith(quietHoursEnabled: val));
               },
             ),
             ListTile(
@@ -499,7 +535,8 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 );
                 if (time != null) {
-                  notifier.updateSetting('quiet_hours_start', '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
+                  notifier.updateSetting('quiet_hours_start',
+                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
                   if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                 }
@@ -517,7 +554,8 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 );
                 if (time != null) {
-                  notifier.updateSetting('quiet_hours_end', '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
+                  notifier.updateSetting('quiet_hours_end',
+                      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
                   if (!ctx.mounted) return;
                   Navigator.pop(ctx);
                 }
@@ -526,16 +564,18 @@ class SettingsScreen extends ConsumerWidget {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
         ],
       ),
     );
   }
 
-  void _showSoundDialog(BuildContext context, WidgetRef ref, SettingsState settings) {
+  void _showSoundDialog(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final notifier = ref.read(settingsProvider.notifier);
     final sounds = ['Soft chime', 'Bell', 'Digital', 'None'];
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -548,20 +588,23 @@ class SettingsScreen extends ConsumerWidget {
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: sounds.map((s) => RadioListTile<String>(
-              title: Text(s),
-              value: s,
-            )).toList(),
+            children: sounds
+                .map((s) => RadioListTile<String>(
+                      title: Text(s),
+                      value: s,
+                    ))
+                .toList(),
           ),
         ),
       ),
     );
   }
 
-  void _showLeadTimeDialog(BuildContext context, WidgetRef ref, SettingsState settings) {
+  void _showLeadTimeDialog(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final notifier = ref.read(settingsProvider.notifier);
     final options = [1, 3, 7, 14, 30];
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -574,20 +617,24 @@ class SettingsScreen extends ConsumerWidget {
           },
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: options.map((o) => RadioListTile<int>(
-              title: Text('$o days'),
-              value: o,
-            )).toList(),
+            children: options
+                .map((o) => RadioListTile<int>(
+                      title: Text('$o days'),
+                      value: o,
+                    ))
+                .toList(),
           ),
         ),
       ),
     );
   }
 
-  void _showThresholdDialog(BuildContext context, WidgetRef ref, SettingsState settings) {
+  void _showThresholdDialog(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final notifier = ref.read(settingsProvider.notifier);
-    final controller = TextEditingController(text: settings.lowStockThreshold.toString());
-    
+    final controller =
+        TextEditingController(text: settings.lowStockThreshold.toString());
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -598,13 +645,15 @@ class SettingsScreen extends ConsumerWidget {
           decoration: const InputDecoration(suffixText: 'units'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               final val = int.tryParse(controller.text);
-              if (val != null) notifier.updateSetting('low_stock_threshold', val);
+              if (val != null)
+                notifier.updateSetting('low_stock_threshold', val);
               Navigator.pop(ctx);
-            }, 
+            },
             child: const Text('Save'),
           ),
         ],
@@ -612,10 +661,11 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showLocationDialog(BuildContext context, WidgetRef ref, SettingsState settings) {
+  void _showLocationDialog(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
     final notifier = ref.read(settingsProvider.notifier);
     final controller = TextEditingController(text: settings.defaultLocation);
-    
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -625,12 +675,63 @@ class SettingsScreen extends ConsumerWidget {
           decoration: const InputDecoration(hintText: 'e.g. Kitchen'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               notifier.updateSetting('default_location', controller.text);
               Navigator.pop(ctx);
-            }, 
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showGeminiKeyDialog(
+      BuildContext context, WidgetRef ref, SettingsState settings) {
+    final notifier = ref.read(settingsProvider.notifier);
+    final controller = TextEditingController(text: settings.geminiApiKey ?? '');
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Gemini API Key'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Enter your Google Gemini API key to automatically fetch AI summaries for medicines.',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                hintText: 'AIzaSy...',
+                border: OutlineInputBorder(),
+              ),
+              obscureText: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              notifier.updateSetting('gemini_api_key', '');
+              Navigator.pop(ctx);
+            },
+            child: const Text('Clear'),
+          ),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              notifier.updateSetting('gemini_api_key', controller.text.trim());
+              Navigator.pop(ctx);
+            },
             child: const Text('Save'),
           ),
         ],
@@ -652,7 +753,9 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('I understand')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('I understand')),
         ],
       ),
     );
@@ -672,9 +775,9 @@ class SettingsScreen extends ConsumerWidget {
     }
 
     final profiles = await ref.read(profilesProvider.future);
-    
+
     final List<List<dynamic>> rows = [];
-    
+
     // Add header
     rows.add([
       'Name',
@@ -690,9 +793,9 @@ class SettingsScreen extends ConsumerWidget {
     ]);
 
     for (final m in medicines) {
-      final profile = profiles.firstWhere((p) => p.id == m.profileId, 
+      final profile = profiles.firstWhere((p) => p.id == m.profileId,
           orElse: () => profiles.first);
-          
+
       rows.add([
         m.name,
         m.brand ?? '',
@@ -747,7 +850,8 @@ class SettingsScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.primary),
+            style: TextButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.primary),
             child: const Text('Cancel'),
           ),
           FilledButton(

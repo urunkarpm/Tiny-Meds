@@ -8,6 +8,7 @@ import '../../../domain/entities/alert.dart';
 import '../../providers/inventory_provider.dart';
 import '../inventory/widgets/add_medicine_bottom_sheet.dart';
 import '../../widgets/profile_switcher.dart';
+import '../search/search_screen.dart';
 
 /// Alerts screen — expiry, low stock, dose alerts
 /// Design spec: 06-Alerts
@@ -26,7 +27,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     final expiredAsync = ref.watch(expiredMedicinesProvider);
     final lowStockAsync = ref.watch(lowStockMedicinesProvider);
     final upcomingAsync = ref.watch(activeAlertsProvider);
@@ -46,21 +47,52 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                 children: [
                   Row(
                     children: [
-                        const ProfileSwitcher(),
-                        const Spacer(),
-                        Semantics(                        label: 'Search alerts',
+                      const ProfileSwitcher(),
+                      const Spacer(),
+                      Semantics(
+                        label: 'Search alerts',
                         child: IconButton(
                           icon: const Icon(Icons.search_rounded),
-                          onPressed: () {},
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const SearchScreen()),
+                          ),
                           tooltip: 'Search',
                         ),
                       ),
                       Semantics(
                         label: 'More options',
-                        child: IconButton(
+                        child: PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert_rounded),
-                          onPressed: () {},
                           tooltip: 'More',
+                          onSelected: (value) {
+                            if (value == 'settings') {
+                              ref.read(bottomNavProvider.notifier).state = 4;
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'settings',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.settings_outlined, size: 20),
+                                  SizedBox(width: 12),
+                                  Text('Settings'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'refresh',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.refresh_rounded, size: 20),
+                                  SizedBox(width: 12),
+                                  Text('Refresh'),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -75,7 +107,8 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 4),
-                        _buildSummaryText(expiredAsync, lowStockAsync, upcomingAsync),
+                        _buildSummaryText(
+                            expiredAsync, lowStockAsync, upcomingAsync),
                       ],
                     ),
                   ),
@@ -91,21 +124,22 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                 children: [
                   _filterChip(context, 'all', 'All', null),
                   const SizedBox(width: 8),
-                  _filterChip(context, 'expiry', 'Expiry',
-                      Icons.access_time_rounded),
+                  _filterChip(
+                      context, 'expiry', 'Expiry', Icons.access_time_rounded),
                   const SizedBox(width: 8),
                   _filterChip(context, 'low_stock', 'Low stock',
                       Icons.inventory_2_rounded),
                   const SizedBox(width: 8),
-                  _filterChip(context, 'doses', 'Doses',
-                      Icons.notifications_rounded),
+                  _filterChip(
+                      context, 'doses', 'Doses', Icons.notifications_rounded),
                 ],
               ),
             ),
 
             // ── Alert list ────────────────────────────────────────
             Expanded(
-              child: _buildAlertList(context, expiredAsync, lowStockAsync, upcomingAsync),
+              child: _buildAlertList(
+                  context, expiredAsync, lowStockAsync, upcomingAsync),
             ),
           ],
         ),
@@ -113,12 +147,10 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     );
   }
 
-  Widget _buildSummaryText(
-      AsyncValue<List<Medicine>> expired,
-      AsyncValue<List<Medicine>> lowStock,
-      AsyncValue<List<Alert>> upcoming) {
+  Widget _buildSummaryText(AsyncValue<List<Medicine>> expired,
+      AsyncValue<List<Medicine>> lowStock, AsyncValue<List<Alert>> upcoming) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return expired.when(
       data: (exp) {
         return lowStock.when(
@@ -127,7 +159,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
               data: (up) {
                 final totalToday = exp.length + low.length;
                 final totalUpcoming = up.length;
-                
+
                 if (totalToday == 0 && totalUpcoming == 0) {
                   return Text(
                     'No active alerts',
@@ -137,7 +169,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                         ?.copyWith(color: colorScheme.onSurfaceVariant),
                   );
                 }
-                
+
                 String text = '';
                 if (totalToday > 0) {
                   text += '$totalToday today';
@@ -146,7 +178,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                   if (text.isNotEmpty) text += ' · ';
                   text += '$totalUpcoming coming up';
                 }
-                
+
                 return Text(
                   text,
                   style: Theme.of(context)
@@ -173,21 +205,30 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
       AsyncValue<List<Medicine>> expired,
       AsyncValue<List<Medicine>> lowStock,
       AsyncValue<List<Alert>> upcoming) {
-    
     return expired.when(
       data: (expItems) => lowStock.when(
         data: (lowItems) => upcoming.when(
           data: (upItems) {
-            final filteredExp = _selectedFilter == 'all' || _selectedFilter == 'expiry' ? expItems : [];
-            final filteredLow = _selectedFilter == 'all' || _selectedFilter == 'low_stock' ? lowItems : [];
+            final filteredExp =
+                _selectedFilter == 'all' || _selectedFilter == 'expiry'
+                    ? expItems
+                    : [];
+            final filteredLow =
+                _selectedFilter == 'all' || _selectedFilter == 'low_stock'
+                    ? lowItems
+                    : [];
             final filteredUp = upItems.where((a) {
               if (_selectedFilter == 'all') return true;
-              if (_selectedFilter == 'expiry' && a.type == AlertType.expiry) return true;
-              if (_selectedFilter == 'doses' && a.type == AlertType.dose) return true;
+              if (_selectedFilter == 'expiry' && a.type == AlertType.expiry)
+                return true;
+              if (_selectedFilter == 'doses' && a.type == AlertType.dose)
+                return true;
               return false;
             }).toList();
 
-            if (filteredExp.isEmpty && filteredLow.isEmpty && filteredUp.isEmpty) {
+            if (filteredExp.isEmpty &&
+                filteredLow.isEmpty &&
+                filteredUp.isEmpty) {
               return _buildEmptyState(context);
             }
 
@@ -207,32 +248,32 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                     ),
                   ),
                   ...filteredExp.map((m) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildExpiredCard(context, m),
-                  )),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildExpiredCard(context, m),
+                      )),
                   ...filteredLow.map((m) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildLowStockCard(context, m),
-                  )),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildLowStockCard(context, m),
+                      )),
                   const SizedBox(height: 16),
                 ],
-
                 if (filteredUp.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(4, 0, 4, 12),
                     child: Text(
                       'UPCOMING',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
                             letterSpacing: 1,
                             fontWeight: FontWeight.w700,
                           ),
                     ),
                   ),
                   ...filteredUp.map((a) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _buildUpcomingCard(context, a),
-                  )),
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildUpcomingCard(context, a),
+                      )),
                 ],
               ],
             );
@@ -254,14 +295,15 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_off_outlined, 
-              size: 64, color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+          Icon(Icons.notifications_off_outlined,
+              size: 64,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'No alerts found',
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-            ),
+                  color: colorScheme.onSurfaceVariant,
+                ),
           ),
         ],
       ),
@@ -286,9 +328,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       selectedColor: colorScheme.surfaceContainerHigh,
       showCheckmark: selected && icon == null,
-      side: selected
-          ? BorderSide.none
-          : BorderSide(color: colorScheme.outline),
+      side: selected ? BorderSide.none : BorderSide(color: colorScheme.outline),
       labelStyle: TextStyle(
         fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
         color: selected ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
@@ -303,8 +343,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border(
-            left: BorderSide(color: colorScheme.error, width: 4)),
+        border: Border(left: BorderSide(color: colorScheme.error, width: 4)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
@@ -352,19 +391,29 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
             children: [
               const SizedBox(width: 42),
               FilledButton(
-                onPressed: () => ref.read(inventoryProvider.notifier).markAsDisposed(medicine.id!),
+                onPressed: () => ref
+                    .read(inventoryProvider.notifier)
+                    .markAsDisposed(medicine.id!),
                 style: FilledButton.styleFrom(
                   backgroundColor: colorScheme.error,
                   foregroundColor: colorScheme.onError,
                   minimumSize: const Size(0, 32),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  textStyle: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
                 ),
                 child: const Text('Toss & remove'),
               ),
               const SizedBox(width: 8),
               TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Snoozed alert for ${medicine.name}'),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
                 style: TextButton.styleFrom(
                   minimumSize: const Size(0, 32),
                   textStyle: const TextStyle(fontSize: 12),
@@ -384,8 +433,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: const Border(
-            left: BorderSide(color: _expireSoon, width: 4)),
+        border: const Border(left: BorderSide(color: _expireSoon, width: 4)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
@@ -434,7 +482,9 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
               const SizedBox(width: 42),
               FilledButton(
                 onPressed: () {
-                  ref.read(inventoryProvider.notifier).toggleNeedsRefill(medicine.id!, true);
+                  ref
+                      .read(inventoryProvider.notifier)
+                      .toggleNeedsRefill(medicine.id!, true);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Added ${medicine.name} to shopping list'),
@@ -450,14 +500,19 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                 style: FilledButton.styleFrom(
                   minimumSize: const Size(0, 32),
                   padding: const EdgeInsets.symmetric(horizontal: 12),
-                  textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  textStyle: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
                 ),
-                child: Text(medicine.needsRefill ? 'In shopping list' : 'Add to shopping'),
+                child: Text(medicine.needsRefill
+                    ? 'In shopping list'
+                    : 'Add to shopping'),
               ),
               const SizedBox(width: 8),
               TextButton(
                 onPressed: () {
-                  ref.read(inventoryProvider.notifier).toggleNeedsRefill(medicine.id!, false);
+                  ref
+                      .read(inventoryProvider.notifier)
+                      .toggleNeedsRefill(medicine.id!, false);
                   // For "Mark refilled", we also want to show the edit sheet to update quantity
                   showModalBottomSheet(
                     context: context,
@@ -476,23 +531,25 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                 child: const Text('Mark refilled'),
               ),
             ],
-          ),        ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildUpcomingCard(BuildContext context, Alert alert) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     IconData icon;
     String title = '';
     String subtitle = '';
-    
+
     switch (alert.type) {
       case AlertType.expiry:
         icon = Icons.access_time_rounded;
         title = 'Medicine expires soon';
-        subtitle = 'In ${alert.triggerDate.difference(DateTime.now()).inDays} days · ${DateFormat('MMM d').format(alert.triggerDate)}';
+        subtitle =
+            'In ${alert.triggerDate.difference(DateTime.now()).inDays} days · ${DateFormat('MMM d').format(alert.triggerDate)}';
         break;
       case AlertType.dose:
         icon = Icons.notifications_rounded;

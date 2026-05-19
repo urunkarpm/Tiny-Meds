@@ -51,7 +51,9 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
   }
 
   Future<void> _scanImage() async {
-    if (_controller == null || !_controller!.value.isInitialized || _isProcessing) {
+    if (_controller == null ||
+        !_controller!.value.isInitialized ||
+        _isProcessing) {
       return;
     }
 
@@ -84,30 +86,33 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
     DateTime? expiryDate;
 
     final lines = text.split('\n');
-    
+
     // 1. Try to find strength (e.g., 500mg, 10ml, 50 mcg)
-    final strengthRegExp = RegExp(r'(\d+)\s*(mg|ml|mcg|g|units|capsules|tablets)', caseSensitive: false);
-    
+    final strengthRegExp = RegExp(
+        r'(\d+)\s*(mg|ml|mcg|g|units|capsules|tablets)',
+        caseSensitive: false);
+
     for (var line in lines) {
       final match = strengthRegExp.firstMatch(line);
       if (match != null) {
         strength = match.group(0);
         // Often the name is on the same line or line before
         if (name == null) {
-           name = line.replaceAll(strength!, '').trim();
-           if (name.length < 3) name = null; // Too short to be a name
+          name = line.replaceAll(strength!, '').trim();
+          if (name.length < 3) name = null; // Too short to be a name
         }
       }
 
       // 2. Try to find expiry date (e.g., EXP 12/2026, 05-2027)
-      final dateRegExp = RegExp(r'(EXP|EXPIRY|ED)[:\s]*(\d{2})[/-](\d{2,4})', caseSensitive: false);
+      final dateRegExp = RegExp(r'(EXP|EXPIRY|ED)[:\s]*(\d{2})[/-](\d{2,4})',
+          caseSensitive: false);
       final dateMatch = dateRegExp.firstMatch(line);
       if (dateMatch != null) {
         final month = int.tryParse(dateMatch.group(2) ?? '');
         final yearStr = dateMatch.group(3) ?? '';
         int year = int.tryParse(yearStr) ?? 0;
         if (year < 100) year += 2000;
-        
+
         if (month != null && month >= 1 && month <= 12 && year > 2000) {
           expiryDate = DateTime(year, month, 1);
         }
@@ -117,7 +122,9 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
     // If name still null, just take the longest line that doesn't look like generic info
     if (name == null || name.isEmpty) {
       for (var line in lines) {
-        if (line.length > 5 && !line.contains(RegExp(r'\d')) && !line.toLowerCase().contains('exp')) {
+        if (line.length > 5 &&
+            !line.contains(RegExp(r'\d')) &&
+            !line.toLowerCase().contains('exp')) {
           name = line.trim();
           break;
         }
@@ -144,7 +151,8 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('Scan Medicine', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('Scan Medicine', style: TextStyle(color: Colors.white)),
       ),
       body: Stack(
         children: [
@@ -156,7 +164,7 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
             const Center(
               child: CircularProgressIndicator(color: Colors.white),
             ),
-          
+
           // Overlay for scanning area
           Center(
             child: Container(
@@ -168,7 +176,7 @@ class _ScanMedicineScreenState extends State<ScanMedicineScreen> {
               ),
             ),
           ),
-          
+
           Positioned(
             bottom: 40,
             left: 0,

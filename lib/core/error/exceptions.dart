@@ -16,7 +16,8 @@ class DatabaseException extends AppException {
 
 /// Notification related exceptions
 class NotificationException extends AppException {
-  const NotificationException(super.message, {super.code = 'NOTIFICATION_ERROR'});
+  const NotificationException(super.message,
+      {super.code = 'NOTIFICATION_ERROR'});
 }
 
 /// OCR processing exceptions

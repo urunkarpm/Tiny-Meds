@@ -45,8 +45,10 @@ class OnboardingScreen extends ConsumerWidget {
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    colorScheme.primaryContainer.withValues(alpha: 0.6),
-                                    colorScheme.primaryContainer.withValues(alpha: 0.1),
+                                    colorScheme.primaryContainer
+                                        .withValues(alpha: 0.6),
+                                    colorScheme.primaryContainer
+                                        .withValues(alpha: 0.1),
                                     Colors.transparent,
                                   ],
                                 ),
@@ -64,7 +66,11 @@ class OnboardingScreen extends ConsumerWidget {
                                     top: 16,
                                     child: Transform.rotate(
                                       angle: -8 * 3.141592653589793 / 180,
-                                      child: const MedTile(form: 'capsule', hue: 210, size: 88, rounded: 22),
+                                      child: const MedTile(
+                                          form: 'capsule',
+                                          hue: 210,
+                                          size: 88,
+                                          rounded: 22),
                                     ),
                                   ),
                                   Positioned(
@@ -72,7 +78,11 @@ class OnboardingScreen extends ConsumerWidget {
                                     top: 0,
                                     child: Transform.rotate(
                                       angle: 6 * 3.141592653589793 / 180,
-                                      child: const MedTile(form: 'tablet', hue: 35, size: 88, rounded: 22),
+                                      child: const MedTile(
+                                          form: 'tablet',
+                                          hue: 35,
+                                          size: 88,
+                                          rounded: 22),
                                     ),
                                   ),
                                   Positioned(
@@ -80,7 +90,11 @@ class OnboardingScreen extends ConsumerWidget {
                                     bottom: 0,
                                     child: Transform.rotate(
                                       angle: 4 * 3.141592653589793 / 180,
-                                      child: const MedTile(form: 'liquid', hue: 320, size: 88, rounded: 22),
+                                      child: const MedTile(
+                                          form: 'liquid',
+                                          hue: 320,
+                                          size: 88,
+                                          rounded: 22),
                                     ),
                                   ),
                                   Positioned(
@@ -88,7 +102,11 @@ class OnboardingScreen extends ConsumerWidget {
                                     bottom: 8,
                                     child: Transform.rotate(
                                       angle: -6 * 3.141592653589793 / 180,
-                                      child: const MedTile(form: 'cream', hue: 140, size: 88, rounded: 22),
+                                      child: const MedTile(
+                                          form: 'cream',
+                                          hue: 140,
+                                          size: 88,
+                                          rounded: 22),
                                     ),
                                   ),
                                 ],
@@ -162,7 +180,7 @@ class OnboardingScreen extends ConsumerWidget {
 
       final file = File(result.files.single.path!);
       final csvString = await file.readAsString();
-      
+
       // Simple EOL detection
       final eol = csvString.contains('\r\n') ? '\r\n' : '\n';
       final fields = CsvToListConverter(eol: eol).convert(csvString);
@@ -170,7 +188,8 @@ class OnboardingScreen extends ConsumerWidget {
       if (fields.length <= 1) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('The selected file is empty or invalid.')),
+            const SnackBar(
+                content: Text('The selected file is empty or invalid.')),
           );
         }
         return;
@@ -182,7 +201,7 @@ class OnboardingScreen extends ConsumerWidget {
 
       for (final row in data) {
         if (row.length < 8) continue;
-        
+
         try {
           final medicine = Medicine(
             name: row[0].toString(),
@@ -198,9 +217,10 @@ class OnboardingScreen extends ConsumerWidget {
           );
 
           // Parse profile info if available (columns 8 and 9)
-          final profileName = row.length > 8 ? row[8].toString() : 'Primary Profile';
-          final profileColor = row.length > 9 
-              ? int.tryParse(row[9].toString()) ?? 0xFF2196F3 
+          final profileName =
+              row.length > 8 ? row[8].toString() : 'Primary Profile';
+          final profileColor = row.length > 9
+              ? int.tryParse(row[9].toString()) ?? 0xFF2196F3
               : 0xFF2196F3;
 
           importData.add({

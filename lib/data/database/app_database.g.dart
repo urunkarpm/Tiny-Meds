@@ -399,6 +399,18 @@ class $MedicineInventoryTable extends MedicineInventory
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_disposed" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _summaryMeta =
+      const VerificationMeta('summary');
+  @override
+  late final GeneratedColumn<String> summary = GeneratedColumn<String>(
+      'summary', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _chemicalCompositionMeta =
+      const VerificationMeta('chemicalComposition');
+  @override
+  late final GeneratedColumn<String> chemicalComposition =
+      GeneratedColumn<String>('chemical_composition', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -433,6 +445,8 @@ class $MedicineInventoryTable extends MedicineInventory
         profileId,
         needsRefill,
         isDisposed,
+        summary,
+        chemicalComposition,
         createdAt,
         updatedAt
       ];
@@ -526,6 +540,16 @@ class $MedicineInventoryTable extends MedicineInventory
           isDisposed.isAcceptableOrUnknown(
               data['is_disposed']!, _isDisposedMeta));
     }
+    if (data.containsKey('summary')) {
+      context.handle(_summaryMeta,
+          summary.isAcceptableOrUnknown(data['summary']!, _summaryMeta));
+    }
+    if (data.containsKey('chemical_composition')) {
+      context.handle(
+          _chemicalCompositionMeta,
+          chemicalComposition.isAcceptableOrUnknown(
+              data['chemical_composition']!, _chemicalCompositionMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -576,6 +600,10 @@ class $MedicineInventoryTable extends MedicineInventory
           .read(DriftSqlType.bool, data['${effectivePrefix}needs_refill'])!,
       isDisposed: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_disposed'])!,
+      summary: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}summary']),
+      chemicalComposition: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}chemical_composition']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
       updatedAt: attachedDatabase.typeMapping
@@ -642,6 +670,12 @@ class MedicineInventoryData extends DataClass
   /// Whether the item has been disposed
   final bool isDisposed;
 
+  /// AI generated summary of the medicine
+  final String? summary;
+
+  /// AI generated chemical composition of the medicine
+  final String? chemicalComposition;
+
   /// Creation timestamp
   final DateTime createdAt;
 
@@ -664,6 +698,8 @@ class MedicineInventoryData extends DataClass
       this.profileId,
       required this.needsRefill,
       required this.isDisposed,
+      this.summary,
+      this.chemicalComposition,
       required this.createdAt,
       required this.updatedAt});
   @override
@@ -704,6 +740,12 @@ class MedicineInventoryData extends DataClass
     }
     map['needs_refill'] = Variable<bool>(needsRefill);
     map['is_disposed'] = Variable<bool>(isDisposed);
+    if (!nullToAbsent || summary != null) {
+      map['summary'] = Variable<String>(summary);
+    }
+    if (!nullToAbsent || chemicalComposition != null) {
+      map['chemical_composition'] = Variable<String>(chemicalComposition);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -742,6 +784,12 @@ class MedicineInventoryData extends DataClass
           : Value(profileId),
       needsRefill: Value(needsRefill),
       isDisposed: Value(isDisposed),
+      summary: summary == null && nullToAbsent
+          ? const Value.absent()
+          : Value(summary),
+      chemicalComposition: chemicalComposition == null && nullToAbsent
+          ? const Value.absent()
+          : Value(chemicalComposition),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -767,6 +815,9 @@ class MedicineInventoryData extends DataClass
       profileId: serializer.fromJson<int?>(json['profileId']),
       needsRefill: serializer.fromJson<bool>(json['needsRefill']),
       isDisposed: serializer.fromJson<bool>(json['isDisposed']),
+      summary: serializer.fromJson<String?>(json['summary']),
+      chemicalComposition:
+          serializer.fromJson<String?>(json['chemicalComposition']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -791,6 +842,8 @@ class MedicineInventoryData extends DataClass
       'profileId': serializer.toJson<int?>(profileId),
       'needsRefill': serializer.toJson<bool>(needsRefill),
       'isDisposed': serializer.toJson<bool>(isDisposed),
+      'summary': serializer.toJson<String?>(summary),
+      'chemicalComposition': serializer.toJson<String?>(chemicalComposition),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -813,6 +866,8 @@ class MedicineInventoryData extends DataClass
           Value<int?> profileId = const Value.absent(),
           bool? needsRefill,
           bool? isDisposed,
+          Value<String?> summary = const Value.absent(),
+          Value<String?> chemicalComposition = const Value.absent(),
           DateTime? createdAt,
           DateTime? updatedAt}) =>
       MedicineInventoryData(
@@ -834,6 +889,10 @@ class MedicineInventoryData extends DataClass
         profileId: profileId.present ? profileId.value : this.profileId,
         needsRefill: needsRefill ?? this.needsRefill,
         isDisposed: isDisposed ?? this.isDisposed,
+        summary: summary.present ? summary.value : this.summary,
+        chemicalComposition: chemicalComposition.present
+            ? chemicalComposition.value
+            : this.chemicalComposition,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
@@ -862,6 +921,10 @@ class MedicineInventoryData extends DataClass
           data.needsRefill.present ? data.needsRefill.value : this.needsRefill,
       isDisposed:
           data.isDisposed.present ? data.isDisposed.value : this.isDisposed,
+      summary: data.summary.present ? data.summary.value : this.summary,
+      chemicalComposition: data.chemicalComposition.present
+          ? data.chemicalComposition.value
+          : this.chemicalComposition,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -886,6 +949,8 @@ class MedicineInventoryData extends DataClass
           ..write('profileId: $profileId, ')
           ..write('needsRefill: $needsRefill, ')
           ..write('isDisposed: $isDisposed, ')
+          ..write('summary: $summary, ')
+          ..write('chemicalComposition: $chemicalComposition, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -910,6 +975,8 @@ class MedicineInventoryData extends DataClass
       profileId,
       needsRefill,
       isDisposed,
+      summary,
+      chemicalComposition,
       createdAt,
       updatedAt);
   @override
@@ -932,6 +999,8 @@ class MedicineInventoryData extends DataClass
           other.profileId == this.profileId &&
           other.needsRefill == this.needsRefill &&
           other.isDisposed == this.isDisposed &&
+          other.summary == this.summary &&
+          other.chemicalComposition == this.chemicalComposition &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -954,6 +1023,8 @@ class MedicineInventoryCompanion
   final Value<int?> profileId;
   final Value<bool> needsRefill;
   final Value<bool> isDisposed;
+  final Value<String?> summary;
+  final Value<String?> chemicalComposition;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const MedicineInventoryCompanion({
@@ -973,6 +1044,8 @@ class MedicineInventoryCompanion
     this.profileId = const Value.absent(),
     this.needsRefill = const Value.absent(),
     this.isDisposed = const Value.absent(),
+    this.summary = const Value.absent(),
+    this.chemicalComposition = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -993,6 +1066,8 @@ class MedicineInventoryCompanion
     this.profileId = const Value.absent(),
     this.needsRefill = const Value.absent(),
     this.isDisposed = const Value.absent(),
+    this.summary = const Value.absent(),
+    this.chemicalComposition = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   })  : name = Value(name),
@@ -1017,6 +1092,8 @@ class MedicineInventoryCompanion
     Expression<int>? profileId,
     Expression<bool>? needsRefill,
     Expression<bool>? isDisposed,
+    Expression<String>? summary,
+    Expression<String>? chemicalComposition,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1037,6 +1114,9 @@ class MedicineInventoryCompanion
       if (profileId != null) 'profile_id': profileId,
       if (needsRefill != null) 'needs_refill': needsRefill,
       if (isDisposed != null) 'is_disposed': isDisposed,
+      if (summary != null) 'summary': summary,
+      if (chemicalComposition != null)
+        'chemical_composition': chemicalComposition,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1059,6 +1139,8 @@ class MedicineInventoryCompanion
       Value<int?>? profileId,
       Value<bool>? needsRefill,
       Value<bool>? isDisposed,
+      Value<String?>? summary,
+      Value<String?>? chemicalComposition,
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt}) {
     return MedicineInventoryCompanion(
@@ -1078,6 +1160,8 @@ class MedicineInventoryCompanion
       profileId: profileId ?? this.profileId,
       needsRefill: needsRefill ?? this.needsRefill,
       isDisposed: isDisposed ?? this.isDisposed,
+      summary: summary ?? this.summary,
+      chemicalComposition: chemicalComposition ?? this.chemicalComposition,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1135,6 +1219,12 @@ class MedicineInventoryCompanion
     if (isDisposed.present) {
       map['is_disposed'] = Variable<bool>(isDisposed.value);
     }
+    if (summary.present) {
+      map['summary'] = Variable<String>(summary.value);
+    }
+    if (chemicalComposition.present) {
+      map['chemical_composition'] = Variable<String>(chemicalComposition.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1163,6 +1253,8 @@ class MedicineInventoryCompanion
           ..write('profileId: $profileId, ')
           ..write('needsRefill: $needsRefill, ')
           ..write('isDisposed: $isDisposed, ')
+          ..write('summary: $summary, ')
+          ..write('chemicalComposition: $chemicalComposition, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1891,6 +1983,8 @@ typedef $$MedicineInventoryTableCreateCompanionBuilder
   Value<int?> profileId,
   Value<bool> needsRefill,
   Value<bool> isDisposed,
+  Value<String?> summary,
+  Value<String?> chemicalComposition,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
 });
@@ -1912,6 +2006,8 @@ typedef $$MedicineInventoryTableUpdateCompanionBuilder
   Value<int?> profileId,
   Value<bool> needsRefill,
   Value<bool> isDisposed,
+  Value<String?> summary,
+  Value<String?> chemicalComposition,
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
 });
@@ -2008,6 +2104,13 @@ class $$MedicineInventoryTableFilterComposer
 
   ColumnFilters<bool> get isDisposed => $composableBuilder(
       column: $table.isDisposed, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get summary => $composableBuilder(
+      column: $table.summary, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get chemicalComposition => $composableBuilder(
+      column: $table.chemicalComposition,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -2112,6 +2215,13 @@ class $$MedicineInventoryTableOrderingComposer
   ColumnOrderings<bool> get isDisposed => $composableBuilder(
       column: $table.isDisposed, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get summary => $composableBuilder(
+      column: $table.summary, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get chemicalComposition => $composableBuilder(
+      column: $table.chemicalComposition,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
@@ -2192,6 +2302,12 @@ class $$MedicineInventoryTableAnnotationComposer
 
   GeneratedColumn<bool> get isDisposed => $composableBuilder(
       column: $table.isDisposed, builder: (column) => column);
+
+  GeneratedColumn<String> get summary =>
+      $composableBuilder(column: $table.summary, builder: (column) => column);
+
+  GeneratedColumn<String> get chemicalComposition => $composableBuilder(
+      column: $table.chemicalComposition, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -2282,6 +2398,8 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             Value<int?> profileId = const Value.absent(),
             Value<bool> needsRefill = const Value.absent(),
             Value<bool> isDisposed = const Value.absent(),
+            Value<String?> summary = const Value.absent(),
+            Value<String?> chemicalComposition = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
@@ -2302,6 +2420,8 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             profileId: profileId,
             needsRefill: needsRefill,
             isDisposed: isDisposed,
+            summary: summary,
+            chemicalComposition: chemicalComposition,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
@@ -2322,6 +2442,8 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             Value<int?> profileId = const Value.absent(),
             Value<bool> needsRefill = const Value.absent(),
             Value<bool> isDisposed = const Value.absent(),
+            Value<String?> summary = const Value.absent(),
+            Value<String?> chemicalComposition = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
           }) =>
@@ -2342,6 +2464,8 @@ class $$MedicineInventoryTableTableManager extends RootTableManager<
             profileId: profileId,
             needsRefill: needsRefill,
             isDisposed: isDisposed,
+            summary: summary,
+            chemicalComposition: chemicalComposition,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),

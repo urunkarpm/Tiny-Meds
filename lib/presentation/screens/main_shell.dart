@@ -40,7 +40,7 @@ class _MainShellState extends ConsumerState<MainShell> {
       error: (_, __) => true,
     );
 
-    // If Settings (index 4) is selected but we're not on primary profile, 
+    // If Settings (index 4) is selected but we're not on primary profile,
     // redirect to Cabinet (index 0)
     if (!isPrimaryProfile && selectedIndex == 4) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -83,7 +83,8 @@ class _MainShellState extends ConsumerState<MainShell> {
         children: _allScreens,
       ),
       bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedIndex > destinations.length - 1 ? 0 : selectedIndex,
+        selectedIndex:
+            selectedIndex > destinations.length - 1 ? 0 : selectedIndex,
         onDestinationSelected: (index) {
           ref.read(bottomNavProvider.notifier).state = index;
         },

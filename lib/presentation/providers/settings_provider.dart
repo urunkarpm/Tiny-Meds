@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// State class for app settings
 class SettingsState {
@@ -14,6 +14,7 @@ class SettingsState {
   final int defaultLeadTime;
   final int lowStockThreshold;
   final String defaultLocation;
+  final String? geminiApiKey;
 
   SettingsState({
     required this.expiryAlertsEnabled,
@@ -26,6 +27,7 @@ class SettingsState {
     required this.defaultLeadTime,
     required this.lowStockThreshold,
     required this.defaultLocation,
+    this.geminiApiKey,
   });
 
   SettingsState copyWith({
@@ -39,6 +41,7 @@ class SettingsState {
     int? defaultLeadTime,
     int? lowStockThreshold,
     String? defaultLocation,
+    String? geminiApiKey,
   }) {
     return SettingsState(
       expiryAlertsEnabled: expiryAlertsEnabled ?? this.expiryAlertsEnabled,
@@ -51,6 +54,7 @@ class SettingsState {
       defaultLeadTime: defaultLeadTime ?? this.defaultLeadTime,
       lowStockThreshold: lowStockThreshold ?? this.lowStockThreshold,
       defaultLocation: defaultLocation ?? this.defaultLocation,
+      geminiApiKey: geminiApiKey ?? this.geminiApiKey,
     );
   }
 }
@@ -64,17 +68,23 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsState>> {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      const secureStorage = FlutterSecureStorage();
+      final apiKey = await secureStorage.read(key: 'gemini_api_key');
+
       state = AsyncValue.data(SettingsState(
         expiryAlertsEnabled: prefs.getBool('expiry_alerts_enabled') ?? true,
-        lowStockAlertsEnabled: prefs.getBool('low_stock_alerts_enabled') ?? true,
+        lowStockAlertsEnabled:
+            prefs.getBool('low_stock_alerts_enabled') ?? true,
         doseRemindersEnabled: prefs.getBool('dose_reminders_enabled') ?? false,
         quietHoursEnabled: prefs.getBool('quiet_hours_enabled') ?? false,
         quietHoursStart: prefs.getString('quiet_hours_start') ?? '22:00',
         quietHoursEnd: prefs.getString('quiet_hours_end') ?? '07:00',
-        notificationSound: prefs.getString('notification_sound') ?? 'Soft chime',
+        notificationSound:
+            prefs.getString('notification_sound') ?? 'Soft chime',
         defaultLeadTime: prefs.getInt('default_lead_time') ?? 7,
         lowStockThreshold: prefs.getInt('low_stock_threshold') ?? 3,
         defaultLocation: prefs.getString('default_location') ?? 'Kitchen',
+        geminiApiKey: apiKey,
       ));
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
@@ -82,8 +92,21 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsState>> {
   }
 
   Future<void> updateSetting<T>(String key, T value) async {
+    if (key == 'gemini_api_key') {
+      const secureStorage = FlutterSecureStorage();
+      if (value == null || (value is String && value.isEmpty)) {
+        await secureStorage.delete(key: key);
+      } else {
+        await secureStorage.write(key: key, value: value as String);
+      }
+      state.whenData((current) {
+        state = AsyncValue.data(current.copyWith(geminiApiKey: value as String?));
+      });
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
-    
+
     if (value is bool) {
       await prefs.setBool(key, value);
     } else if (value is String) {
@@ -99,24 +122,37 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsState>> {
     });
   }
 
-  SettingsState _updateStateFromKey(SettingsState current, String key, dynamic value) {
+  SettingsState _updateStateFromKey(
+      SettingsState current, String key, dynamic value) {
     switch (key) {
-      case 'expiry_alerts_enabled': return current.copyWith(expiryAlertsEnabled: value);
-      case 'low_stock_alerts_enabled': return current.copyWith(lowStockAlertsEnabled: value);
-      case 'dose_reminders_enabled': return current.copyWith(doseRemindersEnabled: value);
-      case 'quiet_hours_enabled': return current.copyWith(quietHoursEnabled: value);
-      case 'quiet_hours_start': return current.copyWith(quietHoursStart: value);
-      case 'quiet_hours_end': return current.copyWith(quietHoursEnd: value);
-      case 'notification_sound': return current.copyWith(notificationSound: value);
-      case 'default_lead_time': return current.copyWith(defaultLeadTime: value);
-      case 'low_stock_threshold': return current.copyWith(lowStockThreshold: value);
-      case 'default_location': return current.copyWith(defaultLocation: value);
-      default: return current;
+      case 'expiry_alerts_enabled':
+        return current.copyWith(expiryAlertsEnabled: value);
+      case 'low_stock_alerts_enabled':
+        return current.copyWith(lowStockAlertsEnabled: value);
+      case 'dose_reminders_enabled':
+        return current.copyWith(doseRemindersEnabled: value);
+      case 'quiet_hours_enabled':
+        return current.copyWith(quietHoursEnabled: value);
+      case 'quiet_hours_start':
+        return current.copyWith(quietHoursStart: value);
+      case 'quiet_hours_end':
+        return current.copyWith(quietHoursEnd: value);
+      case 'notification_sound':
+        return current.copyWith(notificationSound: value);
+      case 'default_lead_time':
+        return current.copyWith(defaultLeadTime: value);
+      case 'low_stock_threshold':
+        return current.copyWith(lowStockThreshold: value);
+      case 'default_location':
+        return current.copyWith(defaultLocation: value);
+      default:
+        return current;
     }
   }
 }
 
 /// Provider for app settings
-final settingsProvider = StateNotifierProvider<SettingsNotifier, AsyncValue<SettingsState>>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SettingsNotifier, AsyncValue<SettingsState>>((ref) {
   return SettingsNotifier();
 });

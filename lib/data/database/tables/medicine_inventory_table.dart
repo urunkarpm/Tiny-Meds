@@ -52,6 +52,12 @@ class MedicineInventory extends Table {
   /// Whether the item has been disposed
   BoolColumn get isDisposed => boolean().withDefault(const Constant(false))();
 
+  /// AI generated summary of the medicine
+  TextColumn get summary => text().nullable()();
+
+  /// AI generated chemical composition of the medicine
+  TextColumn get chemicalComposition => text().nullable()();
+
   /// Creation timestamp
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 

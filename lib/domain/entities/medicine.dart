@@ -18,6 +18,8 @@ class Medicine {
   final double? doseAmount;
   final bool needsRefill;
   final bool isDisposed;
+  final String? summary;
+  final String? chemicalComposition;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -38,6 +40,8 @@ class Medicine {
     this.doseAmount,
     this.needsRefill = false,
     this.isDisposed = false,
+    this.summary,
+    this.chemicalComposition,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -83,8 +87,20 @@ class Medicine {
   /// Get status pill label for StatusPill widget
   String get statusPillLabel {
     if (isExpired) {
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec'
+      ];
       return 'Expired ${months[expiryDate.month - 1]} ${expiryDate.day}';
     }
     if (daysUntilExpiry == 0) return 'Expires today';
@@ -142,6 +158,8 @@ class Medicine {
     double? doseAmount,
     bool? needsRefill,
     bool? isDisposed,
+    String? summary,
+    String? chemicalComposition,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -162,6 +180,8 @@ class Medicine {
       doseAmount: doseAmount ?? this.doseAmount,
       needsRefill: needsRefill ?? this.needsRefill,
       isDisposed: isDisposed ?? this.isDisposed,
+      summary: summary ?? this.summary,
+      chemicalComposition: chemicalComposition ?? this.chemicalComposition,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -188,6 +208,8 @@ class Medicine {
           doseAmount == other.doseAmount &&
           needsRefill == other.needsRefill &&
           isDisposed == other.isDisposed &&
+          summary == other.summary &&
+          chemicalComposition == other.chemicalComposition &&
           createdAt == other.createdAt &&
           updatedAt == other.updatedAt;
 
@@ -209,6 +231,8 @@ class Medicine {
         doseAmount.hashCode ^
         needsRefill.hashCode ^
         isDisposed.hashCode ^
+        summary.hashCode ^
+        chemicalComposition.hashCode ^
         createdAt.hashCode ^
         updatedAt.hashCode;
   }
