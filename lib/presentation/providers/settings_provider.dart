@@ -45,7 +45,8 @@ class SettingsState {
   }) {
     return SettingsState(
       expiryAlertsEnabled: expiryAlertsEnabled ?? this.expiryAlertsEnabled,
-      lowStockAlertsEnabled: lowStockAlertsEnabled ?? this.lowStockAlertsEnabled,
+      lowStockAlertsEnabled:
+          lowStockAlertsEnabled ?? this.lowStockAlertsEnabled,
       doseRemindersEnabled: doseRemindersEnabled ?? this.doseRemindersEnabled,
       quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
       quietHoursStart: quietHoursStart ?? this.quietHoursStart,
@@ -100,7 +101,8 @@ class SettingsNotifier extends StateNotifier<AsyncValue<SettingsState>> {
         await secureStorage.write(key: key, value: value as String);
       }
       state.whenData((current) {
-        state = AsyncValue.data(current.copyWith(geminiApiKey: value as String?));
+        state =
+            AsyncValue.data(current.copyWith(geminiApiKey: value as String?));
       });
       return;
     }

@@ -650,8 +650,9 @@ class SettingsScreen extends ConsumerWidget {
           TextButton(
             onPressed: () {
               final val = int.tryParse(controller.text);
-              if (val != null)
+              if (val != null) {
                 notifier.updateSetting('low_stock_threshold', val);
+              }
               Navigator.pop(ctx);
             },
             child: const Text('Save'),

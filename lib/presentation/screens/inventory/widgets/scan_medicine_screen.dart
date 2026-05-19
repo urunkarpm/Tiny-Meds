@@ -67,7 +67,8 @@ class _ScanMedicineScreenState extends ConsumerState<ScanMedicineScreen> {
       final recognizedText = await _textRecognizer.processImage(inputImage);
 
       final geminiService = ref.read(geminiServiceProvider);
-      final geminiParsed = await geminiService.parseMedicineBoxText(recognizedText.text);
+      final geminiParsed =
+          await geminiService.parseMedicineBoxText(recognizedText.text);
 
       if (!mounted) return;
 

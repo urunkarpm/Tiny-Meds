@@ -35,7 +35,7 @@ class GeminiService {
       }
 
       final model = GenerativeModel(
-        model: 'gemma4:e4b',
+        model: 'gemini-1.5-flash',
         apiKey: apiKey,
         generationConfig: GenerationConfig(
           responseMimeType: 'application/json',
@@ -67,7 +67,8 @@ Return a JSON object with the following keys:
         throw Exception('Empty response from Gemini');
       }
 
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.text!.trim());
+      final Map<String, dynamic> jsonResponse =
+          jsonDecode(response.text!.trim());
 
       DateTime? parsedExpiry;
       if (jsonResponse['expiryDate'] != null) {
@@ -102,16 +103,15 @@ Return a JSON object with the following keys:
       }
 
       final model = GenerativeModel(
-        model: 'gemma4:e4b',
+        model: 'gemini-1.5-flash',
         apiKey: apiKey,
         generationConfig: GenerationConfig(
           responseMimeType: 'application/json',
         ),
       );
 
-      final medicineName = brand != null && brand.isNotEmpty
-          ? '$brand ($name)'
-          : name;
+      final medicineName =
+          brand != null && brand.isNotEmpty ? '$brand ($name)' : name;
 
       final prompt = '''
 Provide a brief summary (2-3 sentences) and the primary chemical composition of the medicine named "$medicineName".
@@ -127,7 +127,8 @@ Return a JSON object with the following keys:
         throw Exception('Empty response from Gemini');
       }
 
-      final Map<String, dynamic> jsonResponse = jsonDecode(response.text!.trim());
+      final Map<String, dynamic> jsonResponse =
+          jsonDecode(response.text!.trim());
 
       return GeminiSummaryResult(
         summary: jsonResponse['summary'] ?? 'Summary not available.',

@@ -24,12 +24,14 @@ void main() {
 
     test('isToday should correctly identify today', () {
       expect(AppDateUtils.isToday(DateTime.now()), true);
-      expect(AppDateUtils.isToday(DateTime.now().add(const Duration(days: 1))), false);
+      expect(AppDateUtils.isToday(DateTime.now().add(const Duration(days: 1))),
+          false);
     });
 
     group('getRelativeTimeString', () {
       test('should return "Expires today" for today', () {
-        expect(AppDateUtils.getRelativeTimeString(DateTime.now()), 'Expires today');
+        expect(AppDateUtils.getRelativeTimeString(DateTime.now()),
+            'Expires today');
       });
 
       test('should return "Expires in X days" for future', () {

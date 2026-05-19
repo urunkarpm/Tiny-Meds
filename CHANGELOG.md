@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.2+9] - 2026-05-19
+
+### Fixed
+- **Gemini Model Name**: Corrected model name from `gemma4:e4b` to `gemini-1.5-flash` to restore AI functionality.
+- **Code Quality**: Applied lint fixes and formatting across the project.
+
 ## [1.6.0+7] - 2026-05-19
 
 ### Added

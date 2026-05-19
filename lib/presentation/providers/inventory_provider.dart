@@ -70,21 +70,20 @@ class InventoryNotifier extends AsyncNotifier<List<Medicine>> {
     return id;
   }
 
-  Future<void> _generateGeminiSummaryAsync(int medicineId, String name, String? brand) async {
+  Future<void> _generateGeminiSummaryAsync(
+      int medicineId, String name, String? brand) async {
     final geminiService = ref.read(geminiServiceProvider);
     final result = await geminiService.generateMedicineSummary(name, brand);
-    
+
     if (result != null) {
       final repository = ref.read(medicineRepositoryProvider);
       final medicine = await repository.getMedicineById(medicineId);
       if (medicine != null) {
-        await updateMedicine(
-          medicine.copyWith(
-            summary: result.summary,
-            chemicalComposition: result.chemicalComposition,
-            updatedAt: DateTime.now(),
-          )
-        );
+        await updateMedicine(medicine.copyWith(
+          summary: result.summary,
+          chemicalComposition: result.chemicalComposition,
+          updatedAt: DateTime.now(),
+        ));
       }
     }
   }

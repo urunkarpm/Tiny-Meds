@@ -219,10 +219,12 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
                     : [];
             final filteredUp = upItems.where((a) {
               if (_selectedFilter == 'all') return true;
-              if (_selectedFilter == 'expiry' && a.type == AlertType.expiry)
+              if (_selectedFilter == 'expiry' && a.type == AlertType.expiry) {
                 return true;
-              if (_selectedFilter == 'doses' && a.type == AlertType.dose)
+              }
+              if (_selectedFilter == 'doses' && a.type == AlertType.dose) {
                 return true;
+              }
               return false;
             }).toList();
 

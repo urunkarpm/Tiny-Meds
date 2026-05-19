@@ -1,7 +1,7 @@
 name: tiny_meds
 description: "A production-ready Flutter Android application for home medicine inventory management and alerts."
 publish_to: 'none'
-version: 1.6.0+7
+version: 1.6.2+9
 
 environment:
   sdk: ^3.5.0
